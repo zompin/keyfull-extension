@@ -13,14 +13,17 @@ class DocumentControl {
                 [createKey(KEYS.J)]: [enablePreventEvent, () => scroll(SCROLL_DIRECTIONS.BOTTOM)],
                 [createKey(KEYS.I)]: [enablePreventEvent, () => setMode(MODES.INPUT)],
                 [createKey(KEYS.L)]: [enablePreventEvent, () => setMode(MODES.LINK), lightControlsOn, nextControl],
-                [createKey(KEYS.MORE)]: [enablePreventEvent, ({ code }) => browser.runtime.sendMessage(code)],
-                [createKey(KEYS.LESS)]: [enablePreventEvent, ({ code }) => browser.runtime.sendMessage(code)],
+                [createKey(KEYS.MORE)]: [enablePreventEvent, () => browser.runtime.sendMessage(JSON.stringify(['TAB_NEXT']))],
+                [createKey(KEYS.LESS)]: [enablePreventEvent, () => browser.runtime.sendMessage(JSON.stringify(['TAB_PREV']))],
             },
             [MODES.LINK]: {
                 [createKey(KEYS.ESC)]: [enablePreventEvent, () => setMode(MODES.COMMAND), lightControlsOff, blurActiveElement],
                 [createKey(KEYS.K)]: [enablePreventEvent, prevControl],
                 [createKey(KEYS.J)]: [enablePreventEvent, nextControl],
                 [createKey(KEYS.I)]: [enablePreventEvent, () => setMode(MODES.INPUT)],
+                [createKey(KEYS.L)]: [enablePreventEvent, () => setMode(MODES.COMMAND), lightControlsOff, blurActiveElement],
+                [createKey(KEYS.O)]: [enablePreventEvent, () => DocumentControl.activate()],
+                [createKey(KEYS.O, { isShift: true })]: [enablePreventEvent, () => DocumentControl.activate(true)],
             },
             [MODES.INPUT]: {
                 [createKey(KEYS.ESC)]: [enablePreventEvent, () => setMode(MODES.COMMAND), blurActiveElement],
@@ -33,6 +36,21 @@ class DocumentControl {
         window.addEventListener(EVENTS.KEYDOWN, this.handleKeyDown.bind(this), true)
         window.addEventListener(EVENTS.KEYUP, this.handleKeyUp.bind(this), true)
         window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), true)
+    }
+
+    static activate(self) {
+        const el = document.querySelector('.light-current-element')
+
+        if (!el) {
+            return
+        }
+
+        if (el.tagName === 'A' && el.href && !el.href.startsWith('#') && !self) {
+            browser.runtime.sendMessage(JSON.stringify(['TAB_NEW_BACKGROUND', el.href]))
+            return
+        }
+
+        el.click()
     }
 
     blockKeys(mode) {
@@ -53,7 +71,7 @@ class DocumentControl {
 
     }
 
-    eventToKeyString(e) {
+    static eventToKeyString(e) {
         const additionalKeys = { isMeta: e.metaKey, isCtrl: e.ctrlKey, isShift: e.shiftKey, isAlt: e.altKey }
 
         return DocumentControl.createKey(e.code, additionalKeys)
@@ -189,7 +207,7 @@ class DocumentControl {
     }
 
     handleKeyDown(e) {
-        const keyString = this.eventToKeyString(e)
+        const keyString = DocumentControl.eventToKeyString(e)
         const queue = this.transitions[this.mode]?.[keyString] || []
 
         queue.forEach(t => t.call(this, { code: e.code }))
@@ -209,5 +227,3 @@ class DocumentControl {
 }
 
 const tmp = new DocumentControl()
-
-console.log(window.top === window)

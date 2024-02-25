@@ -28,18 +28,26 @@ class Tabs {
 
         await this.setActiveTabByIndex(index - 1)
     }
+
+    async newBackgroundTab(url) {
+        await browser.tabs.create({ url, active: false })
+    }
 }
 
 async function main() {
     const tabControl = new Tabs()
 
-    browser.runtime.onMessage.addListener(async (key) => {
+    browser.runtime.onMessage.addListener(async (params) => {
+        const [key, arg1] = JSON.parse(params)
         switch (key) {
-            case 'Comma':
+            case 'TAB_PREV':
                 await tabControl.prevTab()
                 break
-            case 'Period':
+            case 'TAB_NEXT':
                 await tabControl.nextTab()
+                break
+            case 'TAB_NEW_BACKGROUND':
+                await tabControl.newBackgroundTab(arg1)
                 break
         }
     })
