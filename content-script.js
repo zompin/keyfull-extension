@@ -148,7 +148,7 @@ class DocumentControl {
         const index = elements.findIndex(e => e.classList.contains('light-current-element'))
         let nextElement = elements[index + 1] || elements[0]
 
-        if (index === -1) {
+        if (index === -1 && window.top !== window) {
             window.parent.top.focus()
             return;
         }
