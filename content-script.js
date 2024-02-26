@@ -24,6 +24,8 @@ class DocumentControl {
                 [createKey(KEYS.L)]: [enablePreventEvent, () => setMode(MODES.COMMAND), lightControlsOff, blurActiveElement],
                 [createKey(KEYS.O)]: [enablePreventEvent, () => DocumentControl.activate()],
                 [createKey(KEYS.O, { isShift: true })]: [enablePreventEvent, () => DocumentControl.activate(true)],
+                [createKey(KEYS.MORE)]: [enablePreventEvent, () => browser.runtime.sendMessage(JSON.stringify(['TAB_NEXT']))],
+                [createKey(KEYS.LESS)]: [enablePreventEvent, () => browser.runtime.sendMessage(JSON.stringify(['TAB_PREV']))],
             },
             [MODES.INPUT]: {
                 [createKey(KEYS.ESC)]: [enablePreventEvent, () => setMode(MODES.COMMAND), blurActiveElement],
