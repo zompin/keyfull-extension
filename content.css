@@ -5,3 +5,15 @@
 .light-current-element {
     box-shadow: 0 0 2px 1px black, inset 0 0 2px 2px white;
 }
+
+#keyfull-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 10000;
+    color: #fff;
+    background: #000;
+    font-size: 16px;
+    font-family: monospace;
+    padding: 5px 10px;
+}

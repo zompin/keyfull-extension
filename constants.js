@@ -84,8 +84,3 @@ const KEYS = {
     MORE: 'Period',
     ESC: 'Escape',
 }
-
-// window[Symbol.for('MODES')] = MODES
-// window[Symbol.for('SCROLL_DIRECTIONS')] = SCROLL_DIRECTIONS
-// window[Symbol.for('EVENTS')] = EVENTS
-// window[Symbol.for('KEYS')] = KEYS

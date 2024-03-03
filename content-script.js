@@ -3,9 +3,10 @@ class DocumentControl {
         const {enablePreventEvent, scroll, lightControlsOn, nextControl, lightControlsOff, blurActiveElement, prevControl} = this
         const createKey = DocumentControl.createKey
         const setMode = this.setMode.bind(this)
+        const setNextModeAsDefault = this.setNextModeAsDefault.bind(this)
         this.activeElement = null
         this.preventEnabled = false
-        this.mode = MODES.COMMAND
+        this.mode = Object.values(MODES).find(m => m === localStorage.getItem('keyfull-extension-default-mode')) || MODES.COMMAND
 
         this.transitions = {
             [MODES.COMMAND]: {
@@ -13,8 +14,9 @@ class DocumentControl {
                 [createKey(KEYS.J)]: [enablePreventEvent, () => scroll(SCROLL_DIRECTIONS.BOTTOM)],
                 [createKey(KEYS.I)]: [enablePreventEvent, () => setMode(MODES.INPUT)],
                 [createKey(KEYS.L)]: [enablePreventEvent, () => setMode(MODES.LINK), lightControlsOn, nextControl],
-                [createKey(KEYS.MORE)]: [enablePreventEvent, () => browser.runtime.sendMessage(JSON.stringify(['TAB_NEXT']))],
-                [createKey(KEYS.LESS)]: [enablePreventEvent, () => browser.runtime.sendMessage(JSON.stringify(['TAB_PREV']))],
+                [createKey(KEYS.MORE)]: [enablePreventEvent, () => DocumentControl.message(['TAB_NEXT'])],
+                [createKey(KEYS.LESS)]: [enablePreventEvent, () => DocumentControl.message(['TAB_PREV'])],
+                [createKey(KEYS.X)]: [enablePreventEvent, setNextModeAsDefault]
             },
             [MODES.LINK]: {
                 [createKey(KEYS.ESC)]: [enablePreventEvent, () => setMode(MODES.COMMAND), lightControlsOff, blurActiveElement],
@@ -24,8 +26,8 @@ class DocumentControl {
                 [createKey(KEYS.L)]: [enablePreventEvent, () => setMode(MODES.COMMAND), lightControlsOff, blurActiveElement],
                 [createKey(KEYS.O)]: [enablePreventEvent, () => DocumentControl.activate()],
                 [createKey(KEYS.O, { isShift: true })]: [enablePreventEvent, () => DocumentControl.activate(true)],
-                [createKey(KEYS.MORE)]: [enablePreventEvent, () => browser.runtime.sendMessage(JSON.stringify(['TAB_NEXT']))],
-                [createKey(KEYS.LESS)]: [enablePreventEvent, () => browser.runtime.sendMessage(JSON.stringify(['TAB_PREV']))],
+                [createKey(KEYS.MORE)]: [enablePreventEvent, () => DocumentControl.message(['TAB_NEXT'])],
+                [createKey(KEYS.LESS)]: [enablePreventEvent, () => DocumentControl.message(['TAB_PREV'])],
             },
             [MODES.INPUT]: {
                 [createKey(KEYS.ESC)]: [enablePreventEvent, () => setMode(MODES.COMMAND), blurActiveElement],
@@ -40,6 +42,17 @@ class DocumentControl {
         window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), true)
     }
 
+    setNextModeAsDefault() {
+        const values = Object.values(MODES)
+        const index = values.findIndex(m => localStorage.getItem('keyfull-extension-default-mode') === m)
+        const mode = values[index + 1] || values[0]
+        localStorage.setItem('keyfull-extension-default-mode', mode)
+    }
+
+    static message(m) {
+        browser.runtime.sendMessage(JSON.stringify(m))
+    }
+
     static activate(self) {
         const el = document.querySelector('.light-current-element')
 
@@ -48,7 +61,7 @@ class DocumentControl {
         }
 
         if (el.tagName === 'A' && el.href && !el.href.startsWith('#') && !self) {
-            browser.runtime.sendMessage(JSON.stringify(['TAB_NEW_BACKGROUND', el.href]))
+            DocumentControl.message(['TAB_NEW_BACKGROUND', el.href])
             return
         }
 
@@ -86,15 +99,14 @@ class DocumentControl {
     }
 
     get panel() {
-        let el = document.querySelector('#key-palette')
+        let el = document.querySelector('#keyfull-panel')
 
         if (el) {
             return el
         }
 
         el = document.createElement('div')
-        el.setAttribute('id', 'key-palette')
-        el.setAttribute('style', 'position: fixed; top: 0; right: 0; z-index: 10000; color: #fff; background: #000;')
+        el.setAttribute('id', 'keyfull-panel')
         document.body.append(el)
 
         return el
