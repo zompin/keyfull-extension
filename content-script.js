@@ -1,84 +1,74 @@
 class DocumentControl {
     constructor() {
-        const {enablePreventEvent, scroll, lightControlsOn, nextControl, lightControlsOff, blurActiveElement, prevControl} = this
-        const createKey = DocumentControl.createKey
-        const setMode = this.setMode.bind(this)
-        const setNextModeAsDefault = this.setNextModeAsDefault.bind(this)
-        this.activeElement = null
+        const createKey = this.createKey.bind(this)
+        const ep = this.enablePreventEvent.bind(this)
+
+        this.mode = MODES.FREE
         this.preventEnabled = false
-        this.mode = Object.values(MODES).find(m => m === localStorage.getItem('keyfull-extension-default-mode')) || MODES.COMMAND
-
         this.transitions = {
-            [MODES.COMMAND]: {
-                [createKey(KEYS.K)]: [enablePreventEvent, () => scroll(SCROLL_DIRECTIONS.TOP)],
-                [createKey(KEYS.J)]: [enablePreventEvent, () => scroll(SCROLL_DIRECTIONS.BOTTOM)],
-                [createKey(KEYS.I)]: [enablePreventEvent, () => setMode(MODES.INPUT)],
-                [createKey(KEYS.L)]: [enablePreventEvent, () => setMode(MODES.LINK), lightControlsOn, nextControl],
-                [createKey(KEYS.MORE)]: [enablePreventEvent, () => DocumentControl.message(['TAB_NEXT'])],
-                [createKey(KEYS.LESS)]: [enablePreventEvent, () => DocumentControl.message(['TAB_PREV'])],
-                [createKey(KEYS.X)]: [enablePreventEvent, setNextModeAsDefault]
+            [MODES.FREE]: {
+                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setPendingMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setPendingMode],
             },
-            [MODES.LINK]: {
-                [createKey(KEYS.ESC)]: [enablePreventEvent, () => setMode(MODES.COMMAND), lightControlsOff, blurActiveElement],
-                [createKey(KEYS.K)]: [enablePreventEvent, prevControl],
-                [createKey(KEYS.J)]: [enablePreventEvent, nextControl],
-                [createKey(KEYS.I)]: [enablePreventEvent, () => setMode(MODES.INPUT)],
-                [createKey(KEYS.L)]: [enablePreventEvent, () => setMode(MODES.COMMAND), lightControlsOff, blurActiveElement],
-                [createKey(KEYS.O)]: [enablePreventEvent, () => DocumentControl.activate()],
-                [createKey(KEYS.O, { isShift: true })]: [enablePreventEvent, () => DocumentControl.activate(true)],
-                [createKey(KEYS.MORE)]: [enablePreventEvent, () => DocumentControl.message(['TAB_NEXT'])],
-                [createKey(KEYS.LESS)]: [enablePreventEvent, () => DocumentControl.message(['TAB_PREV'])],
+            [MODES.PENDING]: {
+                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setNavigationMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setNavigationMode],
             },
-            [MODES.INPUT]: {
-                [createKey(KEYS.ESC)]: [enablePreventEvent, () => setMode(MODES.COMMAND), blurActiveElement],
+            [MODES.NAVIGATION]: {
+                [createKey(PRIMARY_KEYS.ESC)]: [ep, this.setFreeMode],
+                [createKey(PRIMARY_KEYS.Z)]: [ep, this.setFreeMode],
+                [createKey(PRIMARY_KEYS.K)]: [ep, Commands.scrollTop],
+                [createKey(PRIMARY_KEYS.J)]: [ep, Commands.scrollBottom],
+                [createKey(PRIMARY_KEYS.K, { isShift: true })]: [ep, Commands.scrollToTop],
+                [createKey(PRIMARY_KEYS.J, { isShift: true })]: [ep, Commands.scrollToBottom],
+                [createKey(PRIMARY_KEYS.MORE)]: [ep, Commands.nextTab],
+                [createKey(PRIMARY_KEYS.LESS)]: [ep, Commands.prevTab],
+                [createKey(PRIMARY_KEYS.MORE, { isShift: true })]: [ep, Commands.moveCurrentTabToRight],
+                [createKey(PRIMARY_KEYS.LESS, { isShift: true })]: [ep, Commands.moveCurrentTabToLeft],
+                [createKey(PRIMARY_KEYS.D)]: [ep, Commands.duplicateTab],
+                [createKey(PRIMARY_KEYS.D, { isShift: true })]: [ep, Commands.duplicateAndActiveTab],
+                [createKey(PRIMARY_KEYS.X)]: [ep, Commands.closeCurrentTab],
+                [createKey(PRIMARY_KEYS.R)]: [ep, Commands.updateCurrentTab],
+                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, Commands.markControls],
+                [createKey(PRIMARY_KEYS.T)]: [ep, Commands.newTab],
+                // [createKey(PRIMARY_KEYS.A)]: [ep, Commands.showLinksBlocks],
             },
         }
 
-        this.blockKeys(MODES.COMMAND)
-        this.blockKeys(MODES.LINK)
+        this.blockKeys(MODES.NAVIGATION)
 
-        window.addEventListener(EVENTS.KEYDOWN, this.handleKeyDown.bind(this), true)
-        window.addEventListener(EVENTS.KEYUP, this.handleKeyUp.bind(this), true)
-        window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), true)
+        window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), { capture: true })
+        window.addEventListener(EVENTS.KEYDOWN, this.handleKeyDown.bind(this), { capture: true })
+        window.addEventListener(EVENTS.KEYUP, this.handleKeyUp.bind(this), { capture: true })
+        browser.runtime.onMessage.addListener(this.handleMessage.bind(this))
     }
 
-    setNextModeAsDefault() {
-        const values = Object.values(MODES)
-        const index = values.findIndex(m => localStorage.getItem('keyfull-extension-default-mode') === m)
-        const mode = values[index + 1] || values[0]
-        localStorage.setItem('keyfull-extension-default-mode', mode)
+    setPendingMode() {
+        this.setMode(MODES.PENDING)
+        Commands.message([MODES.PENDING])
     }
 
-    static message(m) {
-        browser.runtime.sendMessage(JSON.stringify(m))
+    setNavigationMode() {
+        this.setMode(MODES.NAVIGATION)
+        Commands.message(MODES.NAVIGATION)
     }
 
-    static activate(self) {
-        const el = document.querySelector('.light-current-element')
-
-        if (!el) {
-            return
-        }
-
-        if (el.tagName === 'A' && el.href && !el.href.startsWith('#') && !self) {
-            DocumentControl.message(['TAB_NEW_BACKGROUND', el.href])
-            return
-        }
-
-        el.click()
+    setFreeMode() {
+        this.setMode(MODES.FREE)
+        Commands.message(MODES.FREE)
     }
 
     blockKeys(mode) {
         const BLOCK_COMMANDS = [this.enablePreventEvent]
 
-        Object.values(KEYS).forEach(k => {
-            if (k === KEYS.ESC) {
+        Object.values(PRIMARY_KEYS).forEach(k => {
+            if (k === PRIMARY_KEYS.ESC) {
                 return
             }
 
             [
-                DocumentControl.createKey(k),
-                DocumentControl.createKey(k, { isShift: true })
+                this.createKey(k),
+                this.createKey(k, { isShift: true })
             ].forEach(comb => {
                 this.transitions[mode][comb] = this.transitions[mode][comb] || BLOCK_COMMANDS
             })
@@ -86,53 +76,23 @@ class DocumentControl {
 
     }
 
-    static eventToKeyString(e) {
+    eventToKeyString(e) {
         const additionalKeys = { isMeta: e.metaKey, isCtrl: e.ctrlKey, isShift: e.shiftKey, isAlt: e.altKey }
 
-        return DocumentControl.createKey(e.code, additionalKeys)
+        return this.createKey(e.code, additionalKeys)
     }
 
-    static createKey(code, additionalKeys = {}) {
+    createKey(code, additionalKeys = {}) {
         const { isMeta, isCtrl, isShift, isAlt } = additionalKeys
+        const { ShiftLeft, ShiftRight } = MODIFICATIONS_KEYS
 
-        return [code, !!isMeta, !!isCtrl, !!isShift, !!isAlt].toString()
-    }
-
-    get panel() {
-        let el = document.querySelector('#keyfull-panel')
-
-        if (el) {
-            return el
-        }
-
-        el = document.createElement('div')
-        el.setAttribute('id', 'keyfull-panel')
-        document.body.append(el)
-
-        return el
-    }
-
-    setMode(mode) {
-        this.mode = mode
-    }
-
-    scroll(direction) {
-        let top = document.documentElement.scrollTop
-
-        switch (direction) {
-            case SCROLL_DIRECTIONS.TOP:
-                top -= 150
-                break
-            case SCROLL_DIRECTIONS.BOTTOM:
-                top += 150
-                break
-        }
-
-        document.documentElement.scroll({
-            top,
-            left: 0,
-            behavior: 'smooth'
-        })
+        return [
+            code,
+            !!isMeta,
+            !!isCtrl,
+            !!isShift || [ShiftLeft, ShiftRight].includes(code),
+            !!isAlt,
+        ].toString()
     }
 
     preventEvent(e) {
@@ -152,81 +112,27 @@ class DocumentControl {
         this.preventEnabled = false
     }
 
-    lightControlsOn() {
-        const elements = document.querySelectorAll('a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])')
-
-        elements.forEach((e) => {
-            const { top, bottom} = e.getBoundingClientRect()
-
-            if (top > 0 && bottom < window.innerHeight && e.checkVisibility({ checkVisibilityCSS: true })) {
-                e.classList.add('light-element')
-            }
-        })
+    setMode(mode) {
+        this.mode = mode
+        Commands.message([ACTIONS.SET_MODE, mode])
+        Panel.setMode(mode)
     }
 
-    lightControlsOff() {
-        const tmp = document.querySelectorAll('.light-element')
-
-        tmp.forEach(e => {
-            e.classList.remove('light-element')
-        })
-
-        this.activeElement = document.querySelector('.light-current-element')
-        this.activeElement?.classList.remove('light-current-element')
-    }
-
-    nextControl() {
-        const elements = [].slice.call(document.querySelectorAll('.light-element'))
-        const index = elements.findIndex(e => e.classList.contains('light-current-element'))
-        let nextElement = elements[index + 1] || elements[0]
-
-        if (index === -1 && window.top !== window) {
-            window.parent.top.focus()
-            return;
-        }
-
-        if (index !== -1) {
-            elements[index].classList.remove('light-current-element')
-        }
-
-        if (!nextElement) {
-            return
-        }
-
-        nextElement = (this.activeElement && elements.find(e => e === this.activeElement)) || nextElement
-        nextElement.classList.add('light-current-element')
-        nextElement.focus()
-        this.activeElement = null
-    }
-
-    prevControl() {
-        const elements = [].slice.call(document.querySelectorAll('.light-element'))
-        const index = elements.findIndex(e => e.classList.contains('light-current-element'))
-        const prevElement = elements[index - 1] || elements[elements.length - 1]
-
-        if (index !== -1) {
-            elements[index].classList.remove('light-current-element')
-        }
-
-        if (!prevElement) {
-            return
-        }
-
-        prevElement.classList.add('light-current-element')
-        prevElement.focus()
-    }
-
-    blurActiveElement() {
-        document.activeElement?.blur()
+    handleMessage(m) {
+        const [_, mode] = JSON.parse(m)
+        this.setMode(mode)
     }
 
     handleKeyDown(e) {
-        const keyString = DocumentControl.eventToKeyString(e)
+        const keyString = this.eventToKeyString(e)
         const queue = this.transitions[this.mode]?.[keyString] || []
 
-        queue.forEach(t => t.call(this, { code: e.code }))
+        if (this.mode === MODES.PENDING && !queue.length) {
+            this.setMode(MODES.FREE)
+        } else {
+            queue.forEach(q => q.call(this))
+        }
 
-        this.panel.innerHTML = `${this.mode}: ${e.code}`
         this.preventEvent(e)
     }
 
@@ -240,4 +146,13 @@ class DocumentControl {
     }
 }
 
-const tmp = new DocumentControl()
+browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE])).then(res => {
+    const panel = new Panel()
+    const control = new DocumentControl(panel)
+
+    control.setMode(res)
+})
+
+window.document.onreadystatechange = (e) => {
+
+}

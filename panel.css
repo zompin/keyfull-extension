@@ -1,0 +1,12 @@
+#keyfull-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 10000;
+    color: #fff;
+    background: #000;
+    font-size: 16px;
+    line-height: 20px;
+    font-family: monospace;
+    padding: 5px 10px;
+}

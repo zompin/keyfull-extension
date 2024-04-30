@@ -11,14 +11,15 @@
   },
   "permissions": ["scripting", "<all_urls>", "tabs", "activeTab"],
   "content_scripts": [{
-    "js": ["constants.js", "content-script.js"],
-    "css": ["content.css"],
+    "js": ["constants.js", "content-script.js", "panel.js", "commands.js"],
+    "css": ["panel.css", "content.css"],
     "matches": ["<all_urls>"],
     "match_about_blank": true,
-    "all_frames": true,
+    "all_frames": false,
     "run_at": "document_start"
   }],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background-constants.js", "tabs.js", "background.js"],
+    "type": "module"
   }
 }

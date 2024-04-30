@@ -1,56 +1,54 @@
-class Tabs {
-    async getActiveTabIndex() {
-        const [{ index }] = await browser.tabs.query({ active: true, currentWindow: true })
+import { Tabs } from "./tabs.js";
+import { ACTIONS, MODES } from './background-constants.js'
 
-        return index
-    }
-
-    async setActiveTabByIndex(index) {
-        const [{id}] = await browser.tabs.query({index, currentWindow: true})
-        await browser.tabs.update(id, {active: true})
-    }
-
-    async nextTab() {
-        const index = await this.getActiveTabIndex()
-        const [nextTab] = await browser.tabs.query({index: index + 1, currentWindow: true})
-        let nextTabIndex = nextTab ? nextTab.index : 0
-
-        await this.setActiveTabByIndex(nextTabIndex)
-    }
-
-    async prevTab() {
-        let index = await this.getActiveTabIndex()
-
-        if (!index) {
-            const allTabs = await browser.tabs.query({ currentWindow: true })
-            index = allTabs.length
-        }
-
-        await this.setActiveTabByIndex(index - 1)
-    }
-
-    async newBackgroundTab(url) {
-        await browser.tabs.create({ url, active: false })
-    }
-}
+let mode = MODES.FREE
 
 async function main() {
-    const tabControl = new Tabs()
-
+    browser.tabs.onActivated.addListener(({ tabId }) => {
+        browser.tabs.sendMessage(tabId, JSON.stringify([ACTIONS.SET_MODE, mode]))
+    })
     browser.runtime.onMessage.addListener(async (params) => {
         const [key, arg1] = JSON.parse(params)
         switch (key) {
-            case 'TAB_PREV':
-                await tabControl.prevTab()
+            case ACTIONS.TAB_PREV:
+                await Tabs.prevTab()
                 break
-            case 'TAB_NEXT':
-                await tabControl.nextTab()
+            case ACTIONS.TAB_NEXT:
+                await Tabs.nextTab()
                 break
-            case 'TAB_NEW_BACKGROUND':
-                await tabControl.newBackgroundTab(arg1)
+            case ACTIONS.TAB_NEW_BACKGROUND:
+                await Tabs.newBackgroundTab(arg1)
                 break
+            case ACTIONS.TAB_MOVE_TO_LEFT:
+                await Tabs.moveCurrentTabToLeft()
+                break
+            case ACTIONS.TAB_MOVE_TO_RIGHT:
+                await Tabs.moveCurrentTabToRight()
+                break
+            case ACTIONS.TAB_DUPLICATE:
+                await Tabs.duplicateTab(arg1)
+                break
+            case ACTIONS.TAB_CLOSE:
+                await Tabs.closeCurrentTab()
+                break
+            case ACTIONS.TAB_RELOAD:
+                await Tabs.reloadCurrentTab()
+                break
+            case ACTIONS.TAB_NEW:
+                await Tabs.newTab()
+                break
+            case ACTIONS.SET_MODE:
+                mode = arg1
+                break
+            case ACTIONS.GET_MODE:
+                return mode
         }
     })
+
+    setInterval(() => {
+        browser.windows.getCurrent().then(console.log)
+    }, 1000)
+    // console.log()
 }
 
 main().catch(console.log)

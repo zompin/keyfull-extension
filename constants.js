@@ -1,8 +1,23 @@
-
 const MODES = {
-    COMMAND: 'command',
-    INPUT: 'input',
-    LINK: 'link',
+    FREE: 'FREE',
+    NAVIGATION: 'NAVIGATION',
+    PENDING: 'PENDING',
+}
+
+const ACTIONS = {
+    TAB_PREV: 'TAB_PREV',
+    TAB_NEXT: 'TAB_NEXT',
+    TAB_NEW_BACKGROUND: 'TAB_NEW_BACKGROUND',
+    TAB_MOVE_TO_LEFT: 'TAB_MOVE_TO_LEFT',
+    TAB_MOVE_TO_RIGHT: 'TAB_MOVE_TO_RIGHT',
+    TAB_DUPLICATE: 'TAB_DUPLICATE',
+    TAB_DUPLICATE_AND_ACTIVATE: 'TAB_DUPLICATE_AND_ACTIVATE',
+    TAB_CLOSE: 'TAB_CLOSE',
+    TAB_RELOAD: 'TAB_RELOAD',
+    TAB_NEW: 'TAB_NEW',
+    SET_MODE: 'SET_MODE',
+    GET_MODE: 'GET_MODE',
+    GET_CONSTANTS: 'GET_CONSTANTS',
 }
 
 const SCROLL_DIRECTIONS = {
@@ -16,7 +31,7 @@ const EVENTS = {
     KEYPRESS: 'keypress',
 }
 
-const KEYS = {
+const PRIMARY_KEYS = {
     Digit0: 'Digit0',
     Digit1: 'Digit1',
     Digit2: 'Digit2',
@@ -83,4 +98,9 @@ const KEYS = {
     LESS: 'Comma',
     MORE: 'Period',
     ESC: 'Escape',
+}
+
+const MODIFICATIONS_KEYS = {
+    ShiftLeft: 'ShiftLeft',
+    ShiftRight: 'ShiftRight',
 }
