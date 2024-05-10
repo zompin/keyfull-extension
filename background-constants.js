@@ -13,7 +13,7 @@ export const ACTIONS = {
 }
 
 export const MODES = {
-    FREE: 'FREE',
-    NAVIGATION: 'NAVIGATION',
+    SHADOW: 'SHADOW',
+    COMMAND: 'COMMAND',
     PENDING: 'PENDING',
 }

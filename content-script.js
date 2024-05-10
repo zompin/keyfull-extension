@@ -3,20 +3,20 @@ class DocumentControl {
         const createKey = this.createKey.bind(this)
         const ep = this.enablePreventEvent.bind(this)
 
-        this.mode = MODES.FREE
+        this.mode = MODES.SHADOW
         this.preventEnabled = false
         this.transitions = {
-            [MODES.FREE]: {
+            [MODES.SHADOW]: {
                 [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setPendingMode],
                 [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setPendingMode],
             },
             [MODES.PENDING]: {
-                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setNavigationMode],
-                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setNavigationMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setCommandMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setCommandMode],
             },
-            [MODES.NAVIGATION]: {
-                [createKey(PRIMARY_KEYS.ESC)]: [ep, this.setFreeMode],
-                [createKey(PRIMARY_KEYS.Z)]: [ep, this.setFreeMode],
+            [MODES.COMMAND]: {
+                [createKey(PRIMARY_KEYS.ESC)]: [ep, this.setShadowMode],
+                [createKey(PRIMARY_KEYS.Z)]: [ep, this.setShadowMode],
                 [createKey(PRIMARY_KEYS.K)]: [ep, Commands.scrollTop],
                 [createKey(PRIMARY_KEYS.J)]: [ep, Commands.scrollBottom],
                 [createKey(PRIMARY_KEYS.K, { isShift: true })]: [ep, Commands.scrollToTop],
@@ -35,7 +35,7 @@ class DocumentControl {
             },
         }
 
-        this.blockKeys(MODES.NAVIGATION)
+        this.blockKeys(MODES.COMMAND)
 
         window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), { capture: true })
         window.addEventListener(EVENTS.KEYDOWN, this.handleKeyDown.bind(this), { capture: true })
@@ -48,14 +48,14 @@ class DocumentControl {
         Commands.message([MODES.PENDING])
     }
 
-    setNavigationMode() {
-        this.setMode(MODES.NAVIGATION)
-        Commands.message(MODES.NAVIGATION)
+    setCommandMode() {
+        this.setMode(MODES.COMMAND)
+        Commands.message(MODES.COMMAND)
     }
 
-    setFreeMode() {
-        this.setMode(MODES.FREE)
-        Commands.message(MODES.FREE)
+    setShadowMode() {
+        this.setMode(MODES.SHADOW)
+        Commands.message(MODES.SHADOW)
     }
 
     blockKeys(mode) {
@@ -128,7 +128,7 @@ class DocumentControl {
         const queue = this.transitions[this.mode]?.[keyString] || []
 
         if (this.mode === MODES.PENDING && !queue.length) {
-            this.setMode(MODES.FREE)
+            this.setMode(MODES.SHADOW)
         } else {
             queue.forEach(q => q.call(this))
         }

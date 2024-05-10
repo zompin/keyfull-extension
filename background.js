@@ -1,7 +1,7 @@
 import { Tabs } from "./tabs.js";
 import { ACTIONS, MODES } from './background-constants.js'
 
-let mode = MODES.FREE
+let mode = MODES.SHADOW
 
 async function main() {
     browser.tabs.onActivated.addListener(({ tabId }) => {

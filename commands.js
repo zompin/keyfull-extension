@@ -8,10 +8,10 @@ class Commands {
 
         switch (direction) {
             case SCROLL_DIRECTIONS.TOP:
-                top -= window.innerHeight * 0.15
+                top -= window.innerHeight * 0.3
                 break
             case SCROLL_DIRECTIONS.BOTTOM:
-                top += window.innerHeight * 0.15
+                top += window.innerHeight * 0.3
                 break
         }
 
@@ -90,8 +90,6 @@ class Commands {
             return top > 0 && bottom < window.innerHeight && e.checkVisibility()
         })
     }
-
-    // static
 
     static indexToString(i) {
         const symbols = ['a', 's', 'd']
