@@ -23,18 +23,20 @@ class Panel {
         el.append(mode)
         el.append(command)
 
-        document.body?.append(el)
+        document.body.append(el)
     }
 
     static setMode(mode) {
-        Panel.renderTemplate()
-        const el = document.querySelector('#keyfull-panel_mode')
+        const interval = setInterval(() => {
+            if (!document.body) {
+                return
+            }
 
-        if (!el) {
-            return
-        }
-
-        el.innerHTML = mode
+            clearInterval(interval)
+            Panel.renderTemplate()
+            const el = document.querySelector('#keyfull-panel_mode')
+            el.innerHTML = mode
+        }, 50)
     }
 
     static setCommand(command) {
