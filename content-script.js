@@ -1,3 +1,5 @@
+const DOUBLE_KEY_TIMEOUT = 400
+
 class DocumentControl {
     constructor() {
         const createKey = this.createKey.bind(this)
@@ -7,15 +9,14 @@ class DocumentControl {
         this.preventEnabled = false
         this.transitions = {
             [MODES.SHADOW]: {
-                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setPendingMode],
-                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setPendingMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setShadowToCommandMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setShadowToCommandMode],
             },
-            [MODES.PENDING]: {
+            [MODES.SHADOW_TO_COMMAND]: {
                 [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setCommandMode],
                 [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setCommandMode],
             },
             [MODES.COMMAND]: {
-                [createKey(PRIMARY_KEYS.ESC)]: [ep, this.setShadowMode],
                 [createKey(PRIMARY_KEYS.Z)]: [ep, this.setShadowMode],
                 [createKey(PRIMARY_KEYS.K)]: [ep, Commands.scrollTop],
                 [createKey(PRIMARY_KEYS.J)]: [ep, Commands.scrollBottom],
@@ -31,8 +32,14 @@ class DocumentControl {
                 [createKey(PRIMARY_KEYS.R)]: [ep, Commands.updateCurrentTab],
                 [createKey(PRIMARY_KEYS.Semicolon)]: [ep, Commands.markControls],
                 [createKey(PRIMARY_KEYS.T)]: [ep, Commands.newTab],
+                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [ep, this.setCommandToShadowMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [ep, this.setCommandToShadowMode],
                 // [createKey(PRIMARY_KEYS.A)]: [ep, Commands.showLinksBlocks],
             },
+            [MODES.COMMAND_TO_SHADOW]: {
+                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setShadowMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setShadowMode],
+            }
         }
 
         this.blockKeys(MODES.COMMAND)
@@ -43,19 +50,24 @@ class DocumentControl {
         browser.runtime.onMessage.addListener(this.handleMessage.bind(this))
     }
 
-    setPendingMode() {
-        this.setMode(MODES.PENDING)
-        Commands.message([MODES.PENDING])
+    setShadowToCommandMode() {
+        this.setMode(MODES.SHADOW_TO_COMMAND)
+        this.timer = setTimeout(() => this.setShadowMode(), DOUBLE_KEY_TIMEOUT)
+    }
+
+    setCommandToShadowMode() {
+        this.setMode(MODES.COMMAND_TO_SHADOW)
+        this.timer = setTimeout(() => this.setCommandMode(), DOUBLE_KEY_TIMEOUT)
     }
 
     setCommandMode() {
+        clearTimeout(this.timer)
         this.setMode(MODES.COMMAND)
-        Commands.message(MODES.COMMAND)
     }
 
     setShadowMode() {
+        clearTimeout(this.timer)
         this.setMode(MODES.SHADOW)
-        Commands.message(MODES.SHADOW)
     }
 
     blockKeys(mode) {
@@ -127,7 +139,7 @@ class DocumentControl {
         const keyString = this.eventToKeyString(e)
         const queue = this.transitions[this.mode]?.[keyString] || []
 
-        if (this.mode === MODES.PENDING && !queue.length) {
+        if (this.mode === MODES.SHADOW_TO_COMMAND && !queue.length) {
             this.setMode(MODES.SHADOW)
         } else {
             queue.forEach(q => q.call(this))

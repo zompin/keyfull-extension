@@ -27,6 +27,10 @@ class Panel {
     }
 
     static setMode(mode) {
+        if (![MODES.COMMAND, MODES.SHADOW].includes(mode)) {
+            return
+        }
+
         const interval = setInterval(() => {
             if (!document.body) {
                 return
@@ -35,7 +39,9 @@ class Panel {
             clearInterval(interval)
             Panel.renderTemplate()
             const el = document.querySelector('#keyfull-panel_mode')
-            el.innerHTML = mode
+
+            el.setAttribute('data-mode', mode)
+            // el.innerHTML = mode
         }, 50)
     }
 
