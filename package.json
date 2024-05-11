@@ -5,7 +5,8 @@
   "main": "background.js",
   "scripts": {
     "start:firefox": "npx web-ext run --source-dir ./",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "zip addons.zip manifest.json *.js *.css"
   },
   "author": "",
   "license": "ISC"
