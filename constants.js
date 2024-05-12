@@ -3,6 +3,7 @@ const MODES = {
     COMMAND: 'COMMAND',
     SHADOW_TO_COMMAND: 'SHADOW_TO_COMMAND',
     COMMAND_TO_SHADOW: 'COMMAND_TO_SHADOW',
+    CONTROL_SELECT: 'CONTROL_SELECT',
 }
 
 const ACTIONS = {
@@ -18,7 +19,6 @@ const ACTIONS = {
     TAB_NEW: 'TAB_NEW',
     SET_MODE: 'SET_MODE',
     GET_MODE: 'GET_MODE',
-    GET_CONSTANTS: 'GET_CONSTANTS',
 }
 
 const SCROLL_DIRECTIONS = {
@@ -99,6 +99,7 @@ const PRIMARY_KEYS = {
     LESS: 'Comma',
     MORE: 'Period',
     ESC: 'Escape',
+    Backspace: 'Backspace',
 }
 
 const MODIFICATIONS_KEYS = {

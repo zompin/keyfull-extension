@@ -7,6 +7,7 @@ class DocumentControl {
 
         this.mode = MODES.SHADOW
         this.preventEnabled = false
+        this.controlId = ''
         this.transitions = {
             [MODES.SHADOW]: {
                 [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setShadowToCommandMode],
@@ -30,19 +31,27 @@ class DocumentControl {
                 [createKey(PRIMARY_KEYS.D, { isShift: true })]: [ep, Commands.duplicateAndActiveTab],
                 [createKey(PRIMARY_KEYS.X)]: [ep, Commands.closeCurrentTab],
                 [createKey(PRIMARY_KEYS.R)]: [ep, Commands.updateCurrentTab],
-                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, Commands.markControls],
                 [createKey(PRIMARY_KEYS.T)]: [ep, Commands.newTab],
                 [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [ep, this.setCommandToShadowMode],
                 [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [ep, this.setCommandToShadowMode],
-                // [createKey(PRIMARY_KEYS.A)]: [ep, Commands.showLinksBlocks],
+                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, this.setControlSelectMode]
             },
             [MODES.COMMAND_TO_SHADOW]: {
                 [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setShadowMode],
                 [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setShadowMode],
+            },
+            [MODES.CONTROL_SELECT]: {
+                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, this.selectModeToCommandMode],
+                [createKey(PRIMARY_KEYS.J)]: [ep, this.handleControlSelect],
+                [createKey(PRIMARY_KEYS.K)]: [ep, this.handleControlSelect],
+                [createKey(PRIMARY_KEYS.L)]: [ep, this.handleControlSelect],
+                [createKey(PRIMARY_KEYS.Backspace)]: [ep, this.handleControlSelect],
+                [createKey(PRIMARY_KEYS.O)]: [ep, this.controlClick],
             }
         }
 
         this.blockKeys(MODES.COMMAND)
+        this.blockKeys(MODES.CONTROL_SELECT)
 
         window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), { capture: true })
         window.addEventListener(EVENTS.KEYDOWN, this.handleKeyDown.bind(this), { capture: true })
@@ -68,6 +77,32 @@ class DocumentControl {
     setShadowMode() {
         clearTimeout(this.timer)
         this.setMode(MODES.SHADOW)
+    }
+
+    setControlSelectMode() {
+        this.setMode(MODES.CONTROL_SELECT)
+        Commands.markControls(this.controlId)
+    }
+
+    handleControlSelect(e) {
+        if (e.key === PRIMARY_KEYS.Backspace) {
+            const id = this.controlId
+            this.controlId = id.slice(0, id.length - 1)
+        } else {
+            this.controlId += e.key
+        }
+        Commands.markControls(this.controlId)
+    }
+
+    selectModeToCommandMode() {
+        this.controlId = ''
+        this.setCommandMode()
+        Commands.unmark()
+    }
+
+    controlClick() {
+        Commands.controlClick(this.controlId)
+        this.setCommandMode()
     }
 
     blockKeys(mode) {
@@ -142,7 +177,7 @@ class DocumentControl {
         if (this.mode === MODES.SHADOW_TO_COMMAND && !queue.length) {
             this.setMode(MODES.SHADOW)
         } else {
-            queue.forEach(q => q.call(this))
+            queue.forEach(q => q.call(this, e))
         }
 
         this.preventEvent(e)

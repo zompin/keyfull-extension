@@ -45,9 +45,9 @@ async function main() {
         }
     })
 
-    setInterval(() => {
-        browser.windows.getCurrent().then(console.log)
-    }, 1000)
+    // setInterval(() => {
+    //     browser.windows.getCurrent().then(console.log)
+    // }, 1000)
     // console.log()
 }
 
