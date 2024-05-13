@@ -46,7 +46,8 @@ class DocumentControl {
                 [createKey(PRIMARY_KEYS.K)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.L)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.Backspace)]: [ep, this.handleControlSelect],
-                [createKey(PRIMARY_KEYS.O)]: [ep, this.controlClick],
+                [createKey(PRIMARY_KEYS.I)]: [ep, this.controlClick],
+                [createKey(PRIMARY_KEYS.O)]: [ep, this.openInNewTab],
             }
         }
 
@@ -95,7 +96,6 @@ class DocumentControl {
     }
 
     selectModeToCommandMode() {
-        this.controlId = ''
         this.setCommandMode()
         Commands.unmark()
     }
@@ -103,6 +103,13 @@ class DocumentControl {
     controlClick() {
         Commands.controlClick(this.controlId)
         this.setCommandMode()
+        this.controlId = ''
+    }
+
+    openInNewTab() {
+        Commands.openInNewTab(this.controlId)
+        this.setCommandMode()
+        this.controlId = ''
     }
 
     blockKeys(mode) {

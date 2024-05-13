@@ -168,7 +168,12 @@ class Commands {
         Commands.unmark()
 
         for (const c of controls) {
-            const label = Commands.createLabel(gen.next().value.join(''), id)
+            const linkId = gen.next().value.join('')
+            const label = Commands.createLabel(linkId, id)
+
+            if (linkId === id) {
+                c.setAttribute('data-keyfull-target-id', id)
+            }
 
             try {
                 if (label) {
@@ -193,8 +198,36 @@ class Commands {
         // }
     }
 
+    static getTargetControl(id) {
+        const el = document.querySelector(`[data-keyfull-target-id="${id}"]`)
+
+        el?.removeAttribute('data-keyfull-target-id')
+
+        return el
+    }
+
     static controlClick(id) {
-        document.querySelector(`[data-keyfull-control-id="${id}"]`)?.click()
+        const el = Commands.getTargetControl(id)
+        Commands.unmark()
+
+        if (!el) {
+            return
+        }
+
+        if (el.href) {
+            location.href = el.href
+        } else {
+            el.click()
+        }
+    }
+
+    static openInNewTab(id) {
+        const link = Commands.getTargetControl(id)?.href
+        Commands.unmark()
+
+        if (link) {
+            window.open(link)
+        }
     }
 
     static showLinksBlocks() {
