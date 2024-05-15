@@ -81,17 +81,25 @@ class DocumentControl {
     }
 
     setControlSelectMode() {
+        this.controlId = ''
         this.setMode(MODES.CONTROL_SELECT)
         Commands.markControls(this.controlId)
     }
 
     handleControlSelect(e) {
+        const map = {
+            [PRIMARY_KEYS.J]: 'j',
+            [PRIMARY_KEYS.K]: 'k',
+            [PRIMARY_KEYS.L]: 'l',
+        }
+
         if (e.key === PRIMARY_KEYS.Backspace) {
             const id = this.controlId
             this.controlId = id.slice(0, id.length - 1)
         } else {
-            this.controlId += e.key
+            this.controlId += map[e.code]
         }
+
         Commands.markControls(this.controlId)
     }
 
@@ -206,7 +214,3 @@ browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE])).then(res => {
 
     control.setMode(res)
 })
-
-window.document.onreadystatechange = (e) => {
-
-}
