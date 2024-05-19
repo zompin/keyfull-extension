@@ -187,14 +187,15 @@ class DocumentControl {
 
     handleKeyDown(e) {
         const keyString = this.eventToKeyString(e)
-        const queue = this.transitions[this.mode]?.[keyString] || []
+        let queue = this.transitions[this.mode]?.[keyString] || []
 
-        if (this.mode === MODES.SHADOW_TO_COMMAND && !queue.length) {
+        if (this.mode === MODES.COMMAND_TO_SHADOW && !queue.length) {
+            queue = this.transitions[MODES.COMMAND]?.[keyString] || []
+        } else if (this.mode === MODES.SHADOW_TO_COMMAND && !queue.length) {
             this.setMode(MODES.SHADOW)
-        } else {
-            queue.forEach(q => q.call(this, e))
         }
 
+        queue.forEach(q => q.call(this, e))
         this.preventEvent(e)
     }
 
