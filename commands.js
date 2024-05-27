@@ -3,8 +3,17 @@ class Commands {
         return browser.runtime.sendMessage(JSON.stringify(m))
     }
 
+    static getScrollElement() {
+        if (document.body.clientHeight < document.documentElement.clientHeight) {
+            return document.body
+        }
+
+        return document.documentElement
+    }
+
     static scroll(direction) {
-        let top = document.documentElement.scrollTop
+        const el = Commands.getScrollElement()
+        let top = el.scrollTop
 
         switch (direction) {
             case SCROLL_DIRECTIONS.TOP:
@@ -15,7 +24,7 @@ class Commands {
                 break
         }
 
-        document.documentElement.scroll({
+        el.scroll({
             top,
             left: 0,
             behavior: 'smooth'
@@ -31,7 +40,7 @@ class Commands {
     }
 
     static scrollToTop() {
-        document.documentElement.scroll({
+        Commands.getScrollElement().scroll({
             top: 0,
             left: 0,
             behavior: 'smooth'
@@ -39,8 +48,10 @@ class Commands {
     }
 
     static scrollToBottom() {
-        document.documentElement.scroll({
-            top: document.documentElement.scrollHeight,
+        const el = Commands.getScrollElement()
+
+        el.scroll({
+            top: el.scrollHeight,
             left: 0,
             behavior: 'smooth'
         })

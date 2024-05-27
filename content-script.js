@@ -34,7 +34,8 @@ class DocumentControl {
                 [createKey(PRIMARY_KEYS.T)]: [ep, Commands.newTab],
                 [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [ep, this.setCommandToShadowMode],
                 [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [ep, this.setCommandToShadowMode],
-                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, this.setControlSelectMode]
+                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, this.setControlSelectMode],
+                [createKey(PRIMARY_KEYS.Space)]: [],
             },
             [MODES.COMMAND_TO_SHADOW]: {
                 [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setShadowMode],
