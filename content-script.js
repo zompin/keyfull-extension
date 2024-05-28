@@ -58,7 +58,18 @@ class DocumentControl {
         window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), { capture: true })
         window.addEventListener(EVENTS.KEYDOWN, this.handleKeyDown.bind(this), { capture: true })
         window.addEventListener(EVENTS.KEYUP, this.handleKeyUp.bind(this), { capture: true })
+        window.addEventListener(EVENTS.CLICK, this.handleClick.bind(this))
         browser.runtime.onMessage.addListener(this.handleMessage.bind(this))
+    }
+
+    handleClick(e) {
+        const { tagName, type } = e.target
+
+        if (tagName === 'TEXTAREA' ||
+            (['text', 'search', 'date', 'datetime-local', 'email', 'month', 'number', 'password', 'tel', 'time', 'url', 'week'].includes(type) && tagName === 'INPUT')
+        ) {
+            this.setMode(MODES.SHADOW)
+        }
     }
 
     setShadowToCommandMode() {

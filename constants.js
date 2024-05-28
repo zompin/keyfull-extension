@@ -30,6 +30,7 @@ const EVENTS = {
     KEYDOWN: 'keydown',
     KEYUP: 'keyup',
     KEYPRESS: 'keypress',
+    CLICK: 'click',
 }
 
 const PRIMARY_KEYS = {
