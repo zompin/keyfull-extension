@@ -40,8 +40,7 @@ class Panel {
             Panel.renderTemplate()
             const el = document.querySelector('#keyfull-panel_mode')
 
-            el.setAttribute('data-mode', mode)
-            // el.innerHTML = mode
+            el?.setAttribute('data-mode', mode)
         }, 50)
     }
 

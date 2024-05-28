@@ -178,7 +178,7 @@ class DocumentControl {
     setMode(mode) {
         this.mode = mode
         Commands.message([ACTIONS.SET_MODE, mode])
-        Panel.setMode(mode)
+        Commands.proxyToParent(() => Panel.setMode(mode), 'setMode', [mode])
     }
 
     handleMessage(m) {
@@ -213,6 +213,18 @@ class DocumentControl {
 browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE])).then(res => {
     const panel = new Panel()
     const control = new DocumentControl(panel)
+
+    window.onmessage = (m) => {
+        if (m.data?.type !== 'keyfull') {
+            return
+        }
+
+        if (m.data.action === 'setMode') {
+            control.setMode(...m.data.args)
+        } else {
+            Commands[m.data.action]()
+        }
+    }
 
     control.setMode(res)
 })

@@ -3,6 +3,14 @@ class Commands {
         return browser.runtime.sendMessage(JSON.stringify(m))
     }
 
+    static proxyToParent(func, action, args) {
+        if (window !== window.top) {
+            window.top.postMessage({ type: 'keyfull', action, args }, '*')
+        } else {
+            func()
+        }
+    }
+
     static getScrollElement() {
         if (document.body.clientHeight < document.documentElement.clientHeight) {
             return document.body
@@ -32,29 +40,34 @@ class Commands {
     }
 
     static scrollTop() {
-        Commands.scroll(SCROLL_DIRECTIONS.TOP)
+        const callback = () => Commands.scroll(SCROLL_DIRECTIONS.TOP)
+        Commands.proxyToParent(callback, 'scrollTop')
     }
 
     static scrollBottom() {
-        Commands.scroll(SCROLL_DIRECTIONS.BOTTOM)
+        const callback = () => Commands.scroll(SCROLL_DIRECTIONS.BOTTOM)
+        Commands.proxyToParent(callback, 'scrollBottom')
     }
 
     static scrollToTop() {
-        Commands.getScrollElement().scroll({
+        const callback = () => Commands.getScrollElement().scroll({
             top: 0,
             left: 0,
             behavior: 'smooth'
         })
+
+        Commands.proxyToParent(callback, 'scrollToTop')
     }
 
     static scrollToBottom() {
         const el = Commands.getScrollElement()
-
-        el.scroll({
+        const callback = () => el.scroll({
             top: el.scrollHeight,
             left: 0,
             behavior: 'smooth'
         })
+
+        Commands.proxyToParent(callback, 'scrollToBottom')
     }
 
     static nextTab() {
