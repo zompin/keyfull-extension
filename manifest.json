@@ -11,7 +11,7 @@
   },
   "permissions": ["scripting", "<all_urls>", "tabs", "activeTab"],
   "content_scripts": [{
-    "js": ["constants.js", "content-script.js", "panel.js", "commands.js"],
+    "js": ["constants.js", "content-script.js", "panel.js", "commands.js", "utils.js"],
     "css": ["panel.css", "content.css"],
     "matches": ["<all_urls>"],
     "match_about_blank": true,

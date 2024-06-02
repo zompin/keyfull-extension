@@ -115,37 +115,6 @@ class Commands {
         })
     }
 
-    static unmark() {
-        const elements = document.querySelectorAll('[data-keyfull-control-id]')
-
-        elements.forEach(e => e.remove())
-    }
-
-    static createLabel(value, targetId) {
-        const el = document.createElement('span')
-
-        el.setAttribute('data-keyfull-control-id', value)
-        el.style.position = 'absolute'
-        el.style.background = '#000'
-        el.style.color = '#fff'
-        el.style.padding = '0 5px'
-        el.style.lineHeight = '20px'
-        el.style.fontSize = '16px'
-        el.style.fontWeight = 'normal'
-        el.style.fontFamily = 'monospace'
-        el.style.zIndex = 'calc(infinity)'
-
-        if (!targetId) {
-            el.textContent = value.slice(0, 1)
-        } else if (value.indexOf(targetId) === 0) {
-            el.innerHTML = `<span style="background:#fff; color:#000">${targetId}</span><span>${value.slice(targetId.length)}</span>`
-        } else {
-            return null
-        }
-
-        return el
-    }
-
     static *generateLabelGenerator(count) {
         const keys = { 0: 'j', 1: 'k', 2: 'l' }
         const pow = Math.ceil(Math.log(count) / Math.log(3))
@@ -163,26 +132,73 @@ class Commands {
         }
     }
 
+    static getCanvas() {
+        Commands.unmark()
+        const el = document.createElement('div')
+        el.id = 'keyfull-canvas'
+        el.style.pointerEvents = 'none'
+        el.style.position = 'fixed'
+        el.style.top = '0'
+        el.style.right = '0'
+        el.style.bottom = '0'
+        el.style.left = '0'
+        el.style.fontFamily = 'monospace'
+        el.style.zIndex = 'calc(infinity)'
+        el.style.color = '#fff'
+        el.style.lineHeight = '20px'
+        el.style.fontSize = '16px'
+        el.style.fontWeight = 'normal'
+        document.body.append(el)
+        el.attachShadow({mode: 'open'})
+
+        return el.shadowRoot
+    }
+
     static markControls(id = '') {
         const controls = Commands.getVisibleControls()
+        const canvas = Commands.getCanvas()
         const gen = Commands.generateLabelGenerator(controls.length)
-
-        Commands.unmark()
 
         for (const c of controls) {
             const linkId = gen.next().value.join('')
-            const label = Commands.createLabel(linkId, id)
+            const label = Commands.createLabel(linkId, id, c)
 
             if (linkId === id) {
                 c.setAttribute('data-keyfull-target-id', id)
             }
 
-            try {
-                if (label) {
-                    c.firstChild.before(label)
-                }
-            } catch (e) {}
+            if (label) {
+                canvas.append(label)
+            }
         }
+    }
+
+    static unmark() {
+        document.querySelector('#keyfull-canvas')?.remove()
+    }
+
+    static createLabel(value, targetId, control) {
+        const el = document.createElement('span')
+        const { top, left } = control.getBoundingClientRect()
+
+        el.setAttribute('data-keyfull-control-id', value)
+        el.style.position = 'absolute'
+        el.style.background = '#000'
+        el.style.padding = '0 5px'
+        el.style.top = `${top}px`
+        el.style.left = `${left}px`
+        el.style.border = '1px solid #fff'
+        el.style.borderRadius = '5px'
+
+        if (!targetId) {
+            el.textContent = value.slice(0, 1)
+        } else if (value.indexOf(targetId) === 0) {
+            el.innerHTML = `<span style="background:#fff; color:#000">${targetId}</span><span>${value.slice(targetId.length)}</span>`
+        } else {
+            return null
+        }
+
+        return el
     }
 
     static getTargetControl(id) {
@@ -201,11 +217,8 @@ class Commands {
             return
         }
 
-        if (el.href) {
-            location.href = el.href
-        } else {
-            el.click()
-        }
+        el.focus()
+        el.click()
     }
 
     static openInNewTab(id) {
