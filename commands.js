@@ -11,17 +11,8 @@ class Commands {
         }
     }
 
-    static getScrollElement() {
-        if (document.body.clientHeight < document.documentElement.clientHeight) {
-            return document.body
-        }
-
-        return document.documentElement
-    }
-
     static scroll(direction) {
-        const el = Commands.getScrollElement()
-        let top = el.scrollTop
+        let top = Math.max(document.body.scrollTop, document.documentElement.scrollTop)
 
         switch (direction) {
             case SCROLL_DIRECTIONS.TOP:
@@ -32,11 +23,14 @@ class Commands {
                 break
         }
 
-        el.scroll({
+        const options = {
             top,
             left: 0,
             behavior: 'smooth'
-        })
+        }
+
+        document.body.scroll(options)
+        document.documentElement.scroll(options)
     }
 
     static scrollTop() {
@@ -50,22 +44,31 @@ class Commands {
     }
 
     static scrollToTop() {
-        const callback = () => Commands.getScrollElement().scroll({
+        const options = {
             top: 0,
             left: 0,
             behavior: 'smooth'
-        })
+        }
+        const callback = () => {
+            document.body.scroll(options)
+            document.documentElement.scroll(options)
+        }
 
         Commands.proxyToParent(callback, 'scrollToTop')
     }
 
     static scrollToBottom() {
-        const el = Commands.getScrollElement()
-        const callback = () => el.scroll({
-            top: el.scrollHeight,
+        const top = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)
+        const options = {
+            top,
             left: 0,
             behavior: 'smooth'
-        })
+        }
+
+        const callback = () => {
+            document.body.scroll(options)
+            document.documentElement.scroll(options)
+        }
 
         Commands.proxyToParent(callback, 'scrollToBottom')
     }
