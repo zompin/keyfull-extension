@@ -220,7 +220,10 @@ class Commands {
             return
         }
 
-        el.focus()
+        if (isControlEditable(el)) {
+            el.focus()
+        }
+
         el.click()
     }
 

@@ -49,6 +49,12 @@ class DocumentControl {
                 [createKey(PRIMARY_KEYS.Backspace)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.I)]: [ep, this.controlClick],
                 [createKey(PRIMARY_KEYS.O)]: [ep, this.openInNewTab],
+                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setSelectToShadowMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setSelectToShadowMode],
+            },
+            [MODES.SELECT_TO_SHADOW]: {
+                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setCommandMode],
+                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setCommandMode],
             }
         }
 
@@ -62,12 +68,6 @@ class DocumentControl {
         browser.runtime.onMessage.addListener(this.handleMessage.bind(this))
     }
 
-    handleClick(e) {
-        if (isControlEditable(e.target)) {
-            this.setMode(MODES.SHADOW)
-        }
-    }
-
     setShadowToCommandMode() {
         this.setMode(MODES.SHADOW_TO_COMMAND)
         this.timer = setTimeout(() => this.setShadowMode(), DOUBLE_KEY_TIMEOUT)
@@ -78,9 +78,15 @@ class DocumentControl {
         this.timer = setTimeout(() => this.setCommandMode(), DOUBLE_KEY_TIMEOUT)
     }
 
+    setSelectToShadowMode() {
+        this.setMode(MODES.SELECT_TO_SHADOW)
+        this.timer = setTimeout(() => this.setControlSelectMode(), DOUBLE_KEY_TIMEOUT)
+    }
+
     setCommandMode() {
         clearTimeout(this.timer)
         this.setMode(MODES.COMMAND)
+        Commands.proxyToParent(Commands.unmark, 'unmark')
     }
 
     setShadowMode() {
@@ -88,10 +94,14 @@ class DocumentControl {
         this.setMode(MODES.SHADOW)
     }
 
+    setControlId(id) {
+        this.controlId = id || ''
+    }
+
     setControlSelectMode() {
-        this.controlId = ''
+        Commands.proxyToParent(() => this.setControlId(), 'setControlId', )
+        Commands.proxyToParent(() => Commands.markControls(this.controlId), 'markControls', [this.controlId])
         this.setMode(MODES.CONTROL_SELECT)
-        Commands.markControls(this.controlId)
     }
 
     handleControlSelect(e) {
@@ -108,19 +118,19 @@ class DocumentControl {
             this.controlId += map[e.code]
         }
 
-        Commands.markControls(this.controlId)
+        Commands.proxyToParent(() => Commands.markControls(this.controlId), 'markControls', [this.controlId])
     }
 
     selectModeToCommandMode() {
         this.setCommandMode()
-        Commands.unmark()
+        Commands.proxyToParent(Commands.unmark, 'unmark')
     }
 
     controlClick() {
         const el = document.querySelector(`[data-keyfull-target-id="${this.controlId}"]`)
         Commands.controlClick(this.controlId)
         this.setCommandMode()
-        this.controlId = ''
+        this.setControlId()
 
         if (isControlEditable(el)) {
             this.setShadowMode()
@@ -130,7 +140,7 @@ class DocumentControl {
     openInNewTab() {
         Commands.openInNewTab(this.controlId)
         this.setCommandMode()
-        this.controlId = ''
+        this.setControlId()
     }
 
     blockKeys(mode) {
@@ -219,6 +229,12 @@ class DocumentControl {
     handleKeyUp(e) {
         this.preventEvent(e)
         this.disablePreventEvent()
+    }
+
+    handleClick(e) {
+        if (isControlEditable(e.target)) {
+            this.setMode(MODES.SHADOW)
+        }
     }
 }
 
