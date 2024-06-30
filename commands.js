@@ -110,11 +110,16 @@ class Commands {
     }
 
     static getVisibleControls() {
-        return [...document.querySelectorAll('a, button, input, textarea, select, [role="button"], [role="tab"], [contenteditable]')]
+        const canBeInvisible = (e) => !['input', 'select'].includes(e.tagName.toLowerCase())
+
+        return [...document.querySelectorAll('a, button, input, textarea, select, [role], [contenteditable]')]
         .filter(e => {
             const { top, bottom} = e.getBoundingClientRect()
 
-            return top >= 0 && bottom <= window.innerHeight && e.checkVisibility()
+            return top >= 0 && bottom <= window.innerHeight && e.checkVisibility({
+                opacityProperty: canBeInvisible(e),
+                visibilityProperty: canBeInvisible(e),
+            })
         })
     }
 
@@ -214,6 +219,7 @@ class Commands {
 
     static controlClick(id) {
         const el = Commands.getTargetControl(id)
+
         Commands.unmark()
 
         if (!el) {

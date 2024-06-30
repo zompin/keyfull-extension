@@ -104,21 +104,25 @@ class DocumentControl {
         this.setMode(MODES.CONTROL_SELECT)
     }
 
-    handleControlSelect(e) {
+    changeControlId(key) {
         const map = {
             [PRIMARY_KEYS.J]: 'j',
             [PRIMARY_KEYS.K]: 'k',
             [PRIMARY_KEYS.L]: 'l',
         }
 
-        if (e.key === PRIMARY_KEYS.Backspace) {
+        if (key === PRIMARY_KEYS.Backspace) {
             const id = this.controlId
             this.controlId = id.slice(0, id.length - 1)
         } else {
-            this.controlId += map[e.code]
+            this.controlId += map[key]
         }
 
-        Commands.proxyToParent(() => Commands.markControls(this.controlId), 'markControls', [this.controlId])
+        Commands.markControls(this.controlId)
+    }
+
+    handleControlSelect(e) {
+        Commands.proxyToParent(() => this.changeControlId(e.code), 'changeControlId', [e.code])
     }
 
     selectModeToCommandMode() {
@@ -127,20 +131,24 @@ class DocumentControl {
     }
 
     controlClick() {
-        const el = document.querySelector(`[data-keyfull-target-id="${this.controlId}"]`)
-        Commands.controlClick(this.controlId)
-        this.setCommandMode()
-        this.setControlId()
+        Commands.proxyToParent(() => {
+            const el = document.querySelector(`[data-keyfull-target-id="${this.controlId}"]`)
+            Commands.controlClick(this.controlId)
+            this.setCommandMode()
+            this.setControlId()
 
-        if (isControlEditable(el)) {
-            this.setShadowMode()
-        }
+            if (isControlEditable(el)) {
+                this.setShadowMode()
+            }
+        }, 'controlClick')
     }
 
     openInNewTab() {
-        Commands.openInNewTab(this.controlId)
-        this.setCommandMode()
-        this.setControlId()
+        Commands.proxyToParent(() => {
+            Commands.openInNewTab(this.controlId)
+            this.setCommandMode()
+            this.setControlId()
+        }, 'openInNewTab')
     }
 
     blockKeys(mode) {
@@ -247,10 +255,12 @@ browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE])).then(res => {
             return
         }
 
-        if (m.data.action === 'setMode') {
-            control.setMode(...m.data.args)
+        const {action, args} = m.data
+
+        if (['setMode', 'changeControlId', 'setControlId', 'controlClick', 'openInNewTab'].includes(action)) {
+            control[action](...(args || []))
         } else {
-            Commands[m.data.action]()
+            Commands[action](...(args || []))
         }
     }
 
