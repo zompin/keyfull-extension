@@ -60,12 +60,7 @@ class DocumentControl {
 
         this.blockKeys(MODES.COMMAND)
         this.blockKeys(MODES.CONTROL_SELECT)
-
-        window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), { capture: true })
-        window.addEventListener(EVENTS.KEYDOWN, this.handleKeyDown.bind(this), { capture: true })
-        window.addEventListener(EVENTS.KEYUP, this.handleKeyUp.bind(this), { capture: true })
-        window.addEventListener(EVENTS.CLICK, this.handleClick.bind(this))
-        browser.runtime.onMessage.addListener(this.handleMessage.bind(this))
+        this.subscribe()
     }
 
     setShadowToCommandMode() {
@@ -211,7 +206,7 @@ class DocumentControl {
         Commands.proxyToParent(() => Panel.setMode(mode), 'setMode', [mode])
     }
 
-    handleMessage(m) {
+    handleBrowserMessage(m) {
         const [_, mode] = JSON.parse(m)
         this.setMode(mode)
     }
@@ -244,13 +239,7 @@ class DocumentControl {
             this.setMode(MODES.SHADOW)
         }
     }
-}
-
-browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE])).then(res => {
-    const panel = new Panel()
-    const control = new DocumentControl(panel)
-
-    window.onmessage = (m) => {
+    handleMessage(m) {
         if (m.data?.type !== 'keyfull') {
             return
         }
@@ -258,11 +247,22 @@ browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE])).then(res => {
         const {action, args} = m.data
 
         if (['setMode', 'changeControlId', 'setControlId', 'controlClick', 'openInNewTab'].includes(action)) {
-            control[action](...(args || []))
+            this[action](...(args || []))
         } else {
             Commands[action](...(args || []))
         }
     }
 
-    control.setMode(res)
-})
+    subscribe() {
+        window.addEventListener(EVENTS.KEYPRESS, this.handleKeyPress.bind(this), { capture: true })
+        window.addEventListener(EVENTS.KEYDOWN, this.handleKeyDown.bind(this), { capture: true })
+        window.addEventListener(EVENTS.KEYUP, this.handleKeyUp.bind(this), { capture: true })
+        window.addEventListener(EVENTS.CLICK, this.handleClick.bind(this))
+        window.addEventListener(EVENTS.MESSAGE, this.handleMessage.bind(this))
+        browser.runtime.onMessage.addListener(this.handleBrowserMessage.bind(this))
+    }
+}
+
+const control = new DocumentControl(new Panel())
+
+browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE]))

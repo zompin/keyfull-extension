@@ -7,7 +7,7 @@ function handleActivate({ tabId }) {
     browser.tabs.sendMessage(tabId, JSON.stringify([ACTIONS.SET_MODE, mode]))
 }
 
-async function handleMessage(params) {
+async function handleMessage(params, { tab }) {
     const [key, arg1] = JSON.parse(params)
     switch (key) {
         case ACTIONS.TAB_PREV:
@@ -41,7 +41,8 @@ async function handleMessage(params) {
             mode = arg1
             break
         case ACTIONS.GET_MODE:
-            return mode
+            await browser.tabs.sendMessage(tab.id, JSON.stringify([ACTIONS.SET_MODE, mode]))
+            break
     }
 }
 
