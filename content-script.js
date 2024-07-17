@@ -18,7 +18,6 @@ class DocumentControl {
                 [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setCommandMode],
             },
             [MODES.COMMAND]: {
-                [createKey(PRIMARY_KEYS.Z)]: [ep, this.setShadowMode],
                 [createKey(PRIMARY_KEYS.K)]: [ep, Commands.scrollTop],
                 [createKey(PRIMARY_KEYS.J)]: [ep, Commands.scrollBottom],
                 [createKey(PRIMARY_KEYS.K, { isShift: true })]: [ep, Commands.scrollToTop],
