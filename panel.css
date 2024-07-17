@@ -1,7 +1,11 @@
+#keyfull-panel *, :before, :after {
+    box-sizing: border-box;
+}
+
 #keyfull-panel {
     position: fixed;
-    top: 5px;
-    left: 5px;
+    bottom: 20px;
+    left: 20px;
     z-index: calc(infinity);
     pointer-events: none;
     width: 20px;
@@ -14,12 +18,93 @@
     bottom: 0;
     right: 0;
     left: 0;
-    background: #bbb;
-    border: 1px solid #fff;
-    border-radius: 20px;
+    border-radius: 2px;
+    font-size: 14px;
+    overflow: hidden;
 }
 
-#keyfull-panel_mode[data-mode="COMMAND"] {
-    background: deepskyblue;
+#keyfull-panel_mode span {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s;
 }
 
+#keyfull-panel_mode[data-mode="COMMAND"] span {
+    transform: translateX(-100%);
+}
+
+#keyfull-panel_mode[data-mode="COMMAND_TO_SHADOW"] span,
+#keyfull-panel_mode[data-mode="SHADOW_TO_COMMAND"] span{
+    transform: translateX(-50%);
+}
+
+#keyfull-panel_mode[data-mode="SELECT_TO_SHADOW"] span{
+    transform: translateX(-150%);
+}
+
+#keyfull-panel_mode[data-mode="CONTROL_SELECT"] span{
+    transform: translateX(-200%);
+}
+
+#keyfull-panel_mode span:nth-child(1) {
+    font-size: 8px;
+    line-height: 1;
+    padding: 3px 3px 0 0;
+    justify-content: flex-end;
+    align-items: flex-start;
+    color: #fff;
+    background: #777;
+}
+
+#keyfull-panel_mode span:nth-child(1):before,
+#keyfull-panel_mode span:nth-child(1):after {
+    content: '';
+    position: absolute;
+    border-radius: 100%;
+    background: #fff;
+}
+
+#keyfull-panel_mode span:nth-child(1):before {
+    width: 3px;
+    height: 3px;
+    left: 3px;
+    bottom: 3px;
+}
+
+#keyfull-panel_mode span:nth-child(1):after {
+    width: 4px;
+    height: 4px;
+    left: 7px;
+    bottom: 6px;
+}
+
+#keyfull-panel_mode span:nth-child(2) {
+    left: 100%;
+    background: #0f6;
+}
+
+#keyfull-panel_mode span:nth-child(2):before {
+    content: '';
+    border-width: 2px 2px 0 0;
+    border-style: solid;
+    border-color: #fff;
+    width: 6px;
+    height: 6px;
+    position: absolute;
+    transform: rotate(45deg);
+}
+
+#keyfull-panel_mode span:nth-child(3) {
+    left: 200%;
+    color: #fff;
+    background: #06f;
+    padding-bottom: 2px;
+}

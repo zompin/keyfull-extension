@@ -1,3 +1,5 @@
+const PANEL_ID = 'keyfull-panel'
+
 class Panel {
     static createElement(config) {
         const el = document.createElement('div')
@@ -10,7 +12,7 @@ class Panel {
     }
 
     static renderTemplate() {
-        let el = document.querySelector('#keyfull-panel')
+        let el = document.getElementById(PANEL_ID)
 
         if (window.top !== window || el) {
             return
@@ -19,7 +21,10 @@ class Panel {
         const mode = Panel.createElement({ id: 'keyfull-panel_mode' })
         const command = Panel.createElement({ id: 'keyfull-panel_action' })
 
-        el = Panel.createElement({ id: 'keyfull-panel' })
+        el = Panel.createElement({ id: PANEL_ID })
+
+        mode.innerHTML = '<span>Z</span><span></span><span>+</span>'
+
         el.append(mode)
         el.append(command)
 
@@ -27,10 +32,6 @@ class Panel {
     }
 
     static setMode(mode) {
-        if (![MODES.COMMAND, MODES.SHADOW].includes(mode)) {
-            return
-        }
-
         const interval = setInterval(() => {
             if (!document.body) {
                 return
@@ -38,7 +39,7 @@ class Panel {
 
             clearInterval(interval)
             Panel.renderTemplate()
-            const el = document.querySelector('#keyfull-panel_mode')
+            const el = document.getElementById('keyfull-panel_mode')
 
             el?.setAttribute('data-mode', mode)
         }, 50)
@@ -46,7 +47,7 @@ class Panel {
 
     static setCommand(command) {
         Panel.renderTemplate()
-        const el = document.querySelector('#keyfull-panel_action')
+        const el = document.querySelector(PANEL_ID)
 
         if (!el) {
             return
