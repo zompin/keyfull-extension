@@ -153,8 +153,8 @@ class Commands {
         el.style.fontFamily = 'monospace'
         el.style.zIndex = 'calc(infinity)'
         el.style.color = '#fff'
-        el.style.lineHeight = '20px'
-        el.style.fontSize = '16px'
+        el.style.lineHeight = '16px'
+        el.style.fontSize = '12px'
         el.style.fontWeight = 'normal'
         document.body.append(el)
         el.attachShadow({mode: 'open'})
@@ -195,8 +195,8 @@ class Commands {
         el.style.padding = '0 5px'
         el.style.top = `${top}px`
         el.style.left = `${left}px`
-        el.style.border = '1px solid #fff'
         el.style.borderRadius = '5px'
+        el.style.letterSpacing = '1px'
 
         if (!targetId) {
             el.textContent = value.slice(0, 1)
