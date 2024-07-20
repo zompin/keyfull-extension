@@ -1,5 +1,6 @@
 class Commands {
     static async message(m) {
+        window.top.postMessage(JSON.stringify(m), { targetOrigin: '*'})
         return browser.runtime.sendMessage(JSON.stringify(m))
     }
 
@@ -156,6 +157,7 @@ class Commands {
         el.style.lineHeight = '16px'
         el.style.fontSize = '12px'
         el.style.fontWeight = 'normal'
+        el.style.textTransform = 'uppercase'
         document.body.append(el)
         el.attachShadow({mode: 'open'})
 

@@ -56,3 +56,28 @@ class Panel {
         el.innerHTML = command
     }
 }
+
+
+window.addEventListener(EVENTS.MESSAGE, ({ data }) => {
+    let res = null
+
+    if (window !== window.top) {
+        return
+    }
+
+    try {
+        res = JSON.parse(data)
+    } catch (e) {}
+
+    if (!Array.isArray(res)) {
+        return
+    }
+
+    const [action, arg] = res
+
+    switch (action) {
+        case ACTIONS.SET_MODE:
+            Panel.setMode(arg)
+            break
+    }
+})

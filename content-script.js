@@ -202,7 +202,6 @@ class DocumentControl {
     setMode(mode) {
         this.mode = mode
         Commands.message([ACTIONS.SET_MODE, mode])
-        Commands.proxyToParent(() => Panel.setMode(mode), 'setMode', [mode])
     }
 
     handleBrowserMessage(m) {
@@ -262,6 +261,6 @@ class DocumentControl {
     }
 }
 
-const control = new DocumentControl(new Panel())
+new DocumentControl(new Panel())
 
 browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE]))
