@@ -5,7 +5,19 @@ function isControlEditable(el) {
 
     const { tagName, type } = el
 
-    return tagName === 'TEXTAREA' || (
+    if (tagName === 'TEXTAREA' || (
         ['text', 'search', 'date', 'datetime-local', 'email', 'month', 'number', 'password', 'tel', 'time', 'url', 'week'].includes(type) && tagName === 'INPUT'
-    ) || el.getAttribute('contenteditable')
+    )) {
+        return true
+    }
+
+    while (el) {
+        if (el.getAttribute('contenteditable')) {
+            return true
+        }
+
+        el = el.parentElement
+    }
+
+    return false
 }
