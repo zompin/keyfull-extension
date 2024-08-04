@@ -157,7 +157,6 @@ class Commands {
         el.style.lineHeight = '16px'
         el.style.fontSize = '12px'
         el.style.fontWeight = 'normal'
-        el.style.textTransform = 'uppercase'
         document.body.append(el)
         el.attachShadow({mode: 'open'})
 
@@ -199,6 +198,7 @@ class Commands {
         el.style.left = `${left}px`
         el.style.borderRadius = '5px'
         el.style.letterSpacing = '1px'
+        el.style.paddingBottom = '1px'
 
         if (!targetId) {
             el.textContent = value.slice(0, 1)
