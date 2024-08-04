@@ -12,7 +12,7 @@
   "permissions": ["scripting", "<all_urls>", "tabs", "activeTab"],
   "content_scripts": [{
     "js": ["constants.js", "panel.js", "commands.js", "utils.js", "content-script.js"],
-    "css": ["panel.css", "content.css"],
+    "css": ["panel.css"],
     "matches": ["<all_urls>"],
     "match_about_blank": true,
     "all_frames": true,
