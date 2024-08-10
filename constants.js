@@ -1,10 +1,7 @@
 const MODES = {
     SHADOW: 'SHADOW',
     COMMAND: 'COMMAND',
-    SHADOW_TO_COMMAND: 'SHADOW_TO_COMMAND',
-    COMMAND_TO_SHADOW: 'COMMAND_TO_SHADOW',
     CONTROL_SELECT: 'CONTROL_SELECT',
-    SELECT_TO_SHADOW: 'SELECT_TO_SHADOW',
 }
 
 const ACTIONS = {
@@ -109,6 +106,8 @@ const PRIMARY_KEYS = {
 const MODIFICATIONS_KEYS = {
     ShiftLeft: 'ShiftLeft',
     ShiftRight: 'ShiftRight',
+    MetaLeft: 'MetaLeft',
+    MetaRight: 'MetaRight',
 }
 
 const COMMANDS = {

@@ -41,15 +41,6 @@
     transform: translateX(-100%);
 }
 
-#keyfull-panel_mode[data-mode="COMMAND_TO_SHADOW"] span,
-#keyfull-panel_mode[data-mode="SHADOW_TO_COMMAND"] span{
-    transform: translateX(-50%);
-}
-
-#keyfull-panel_mode[data-mode="SELECT_TO_SHADOW"] span{
-    transform: translateX(-150%);
-}
-
 #keyfull-panel_mode[data-mode="CONTROL_SELECT"] span{
     transform: translateX(-200%);
 }

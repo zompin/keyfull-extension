@@ -26,10 +26,7 @@ async function handleMessage(message, { tab }) {
             await Tabs.moveCurrentTabToRight()
             break
         case ACTIONS.TAB_DUPLICATE:
-            if (params?.url) {
-                await Tabs.duplicateTab(params.url)
-            }
-
+            await Tabs.duplicateTab()
             break
         case ACTIONS.TAB_CLOSE:
             await Tabs.closeCurrentTab()

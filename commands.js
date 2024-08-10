@@ -3,6 +3,13 @@ class Commands {
         return browser.runtime.sendMessage(JSON.stringify(m))
     }
 
+    static async messageToParent(command) {
+        await Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: { command }
+        })
+    }
+
     static scroll(direction) {
         let top = Math.max(document.body.scrollTop, document.documentElement.scrollTop)
 

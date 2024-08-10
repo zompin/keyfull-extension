@@ -1,5 +1,3 @@
-const DOUBLE_KEY_TIMEOUT = 400
-
 class DocumentControl {
     constructor() {
         const createKey = this.createKey.bind(this)
@@ -10,18 +8,15 @@ class DocumentControl {
         this.controlId = ''
         this.transitions = {
             [MODES.SHADOW]: {
-                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setShadowToCommandMode],
-                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setShadowToCommandMode],
-            },
-            [MODES.SHADOW_TO_COMMAND]: {
-                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setCommandMode],
-                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setCommandMode],
+                [createKey(PRIMARY_KEYS.Semicolon, { isMeta: true })]: [this.setCommandMode],
             },
             [MODES.COMMAND]: {
-                [createKey(PRIMARY_KEYS.K)]: [ep, this.scrollTop],
-                [createKey(PRIMARY_KEYS.J)]: [ep, this.scrollBottom],
-                [createKey(PRIMARY_KEYS.K, { isShift: true })]: [ep, this.scrollToTop],
-                [createKey(PRIMARY_KEYS.J, { isShift: true })]: [ep, this.scrollToBottom],
+                [createKey(PRIMARY_KEYS.Semicolon, { isMeta: true })]: [this.setShadowMode],
+                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, this.setControlSelectMode],
+                [createKey(PRIMARY_KEYS.K)]: [ep, () => Commands.messageToParent(COMMANDS.SCROLL_TOP)],
+                [createKey(PRIMARY_KEYS.J)]: [ep, () => Commands.messageToParent(COMMANDS.SCROLL_BOTTOM)],
+                [createKey(PRIMARY_KEYS.K, { isShift: true })]: [ep, () => Commands.messageToParent(COMMANDS.SCROLL_TO_TOP)],
+                [createKey(PRIMARY_KEYS.J, { isShift: true })]: [ep, () => Commands.messageToParent(COMMANDS.SCROLL_TO_BOTTOM)],
                 [createKey(PRIMARY_KEYS.MORE)]: [ep, Commands.nextTab],
                 [createKey(PRIMARY_KEYS.LESS)]: [ep, Commands.prevTab],
                 [createKey(PRIMARY_KEYS.MORE, { isShift: true })]: [ep, Commands.moveCurrentTabToRight],
@@ -30,30 +25,19 @@ class DocumentControl {
                 [createKey(PRIMARY_KEYS.X)]: [ep, Commands.closeCurrentTab],
                 [createKey(PRIMARY_KEYS.R)]: [ep, Commands.updateCurrentTab],
                 [createKey(PRIMARY_KEYS.T)]: [ep, Commands.newTab],
-                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [ep, this.setCommandToShadowMode],
-                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [ep, this.setCommandToShadowMode],
-                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, this.setControlSelectMode],
+                [createKey(PRIMARY_KEYS.Backspace)]: [ep, this.setShadowMode],
                 [createKey(PRIMARY_KEYS.Space)]: [],
             },
-            [MODES.COMMAND_TO_SHADOW]: {
-                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setShadowMode],
-                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setShadowMode],
-            },
             [MODES.CONTROL_SELECT]: {
-                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, this.selectModeToCommandMode],
+                [createKey(PRIMARY_KEYS.Semicolon, { isMeta: true })]: [this.setShadowMode],
+                [createKey(PRIMARY_KEYS.Semicolon)]: [this.setCommandMode],
                 [createKey(PRIMARY_KEYS.J)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.K)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.L)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.Backspace)]: [ep, this.handleControlSelect],
-                [createKey(PRIMARY_KEYS.I)]: [ep, this.handleControlClick],
-                [createKey(PRIMARY_KEYS.O)]: [ep, this.handleOpenInNewTab],
-                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setSelectToShadowMode],
-                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setSelectToShadowMode],
+                [createKey(PRIMARY_KEYS.I)]: [ep, () => Commands.messageToParent(COMMANDS.CONTROL_INTERACT)],
+                [createKey(PRIMARY_KEYS.O)]: [ep, () => Commands.messageToParent(COMMANDS.OPEN_IN_NEW_TAB)],
             },
-            [MODES.SELECT_TO_SHADOW]: {
-                [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setCommandMode],
-                [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setCommandMode],
-            }
         }
 
         this.blockKeys(MODES.COMMAND)
@@ -63,69 +47,12 @@ class DocumentControl {
         browser.runtime.sendMessage(JSON.stringify({ action: ACTIONS.GET_MODE }))
     }
 
-    scrollTop() {
-        Commands.message({
-            action: ACTIONS.PROXY_TO_PARENT,
-            params: {
-                command: COMMANDS.SCROLL_TOP
-            }
-        })
-    }
-
-    scrollBottom() {
-        Commands.message({
-            action: ACTIONS.PROXY_TO_PARENT,
-            params: {
-                command: COMMANDS.SCROLL_BOTTOM
-            }
-        })
-    }
-
-    scrollToTop() {
-        Commands.message({
-            action: ACTIONS.PROXY_TO_PARENT,
-            params: {
-                command: COMMANDS.SCROLL_TO_TOP
-            }
-        })
-    }
-
-    scrollToBottom() {
-        Commands.message({
-            action: ACTIONS.PROXY_TO_PARENT,
-            params: {
-                command: COMMANDS.SCROLL_TO_BOTTOM
-            }
-        })
-    }
-
     setCommandMode() {
-        clearTimeout(this.timer)
         this.setGlobalMode(MODES.COMMAND)
     }
 
-    setShadowToCommandMode() {
-        this.setGlobalMode(MODES.SHADOW_TO_COMMAND)
-        this.timer = setTimeout(() => this.setShadowMode(), DOUBLE_KEY_TIMEOUT)
-    }
-
-    setCommandToShadowMode() {
-        this.setGlobalMode(MODES.COMMAND_TO_SHADOW)
-        this.timer = setTimeout(() => this.setCommandMode(), DOUBLE_KEY_TIMEOUT)
-    }
-
-    setSelectToShadowMode() {
-        this.setGlobalMode(MODES.SELECT_TO_SHADOW)
-        this.timer = setTimeout(() => this.setControlSelectMode(), DOUBLE_KEY_TIMEOUT)
-    }
-
     setShadowMode() {
-        clearTimeout(this.timer)
         this.setGlobalMode(MODES.SHADOW)
-    }
-
-    selectModeToCommandMode() {
-        this.setCommandMode()
     }
 
     setControlSelectMode() {
@@ -173,15 +100,6 @@ class DocumentControl {
         })
     }
 
-    handleControlClick() {
-        Commands.message({
-            action: ACTIONS.PROXY_TO_PARENT,
-            params: {
-                command: COMMANDS.CONTROL_INTERACT,
-            }
-        })
-    }
-
     controlClick() {
         const el = document.querySelector(`[data-keyfull-target-id="${this.controlId}"]`)
         Commands.controlClick(this.controlId)
@@ -195,15 +113,6 @@ class DocumentControl {
     cleanControls() {
         Commands.unmark()
         this.controlId = ''
-    }
-
-    handleOpenInNewTab() {
-        Commands.message({
-            action: ACTIONS.PROXY_TO_PARENT,
-            params: {
-                command: COMMANDS.OPEN_IN_NEW_TAB,
-            }
-        })
     }
 
     openInNewTab() {
@@ -268,12 +177,6 @@ class DocumentControl {
     handleKeyDown(e) {
         const keyString = this.eventToKeyString(e)
         let queue = this.transitions[this.mode]?.[keyString] || []
-
-        if (this.mode === MODES.COMMAND_TO_SHADOW && !queue.length) {
-            queue = this.transitions[MODES.COMMAND]?.[keyString] || []
-        } else if (this.mode === MODES.SHADOW_TO_COMMAND && !queue.length) {
-            this.setGlobalMode(MODES.SHADOW)
-        }
 
         queue.forEach(q => q.call(this, e))
         this.preventEvent(e)
