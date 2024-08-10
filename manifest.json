@@ -11,7 +11,7 @@
   },
   "permissions": ["scripting", "<all_urls>", "tabs", "activeTab"],
   "content_scripts": [{
-    "js": ["constants.js", "panel.js", "commands.js", "utils.js", "content-script.js"],
+    "js": ["constants.js", "utils.js", "panel.js", "commands.js", "content-script.js"],
     "css": ["panel.css"],
     "matches": ["<all_urls>"],
     "match_about_blank": true,
@@ -19,7 +19,7 @@
     "run_at": "document_start"
   }],
   "background": {
-    "scripts": ["background-constants.js", "tabs.js", "background.js"],
+    "scripts": ["background-utils.js", "background-constants.js", "tabs.js", "background.js"],
     "type": "module"
   }
 }

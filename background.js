@@ -1,15 +1,12 @@
 import { Tabs } from "./tabs.js";
 import { ACTIONS, MODES } from './background-constants.js'
-
+import { parseParams } from './background-utils.js'
 let mode = MODES.SHADOW
 
-function handleActivate({ tabId }) {
-    browser.tabs.sendMessage(tabId, JSON.stringify([ACTIONS.SET_MODE, mode]))
-}
+async function handleMessage(message, { tab }) {
+    const { action, params } = parseParams(message)
 
-async function handleMessage(params, { tab }) {
-    const [key, arg1] = JSON.parse(params)
-    switch (key) {
+    switch (action) {
         case ACTIONS.TAB_PREV:
             await Tabs.prevTab()
             break
@@ -17,7 +14,10 @@ async function handleMessage(params, { tab }) {
             await Tabs.nextTab()
             break
         case ACTIONS.TAB_NEW_BACKGROUND:
-            await Tabs.newBackgroundTab(arg1)
+            if (params?.url) {
+                await Tabs.newBackgroundTab(params.url)
+            }
+
             break
         case ACTIONS.TAB_MOVE_TO_LEFT:
             await Tabs.moveCurrentTabToLeft()
@@ -26,7 +26,10 @@ async function handleMessage(params, { tab }) {
             await Tabs.moveCurrentTabToRight()
             break
         case ACTIONS.TAB_DUPLICATE:
-            await Tabs.duplicateTab(arg1)
+            if (params?.url) {
+                await Tabs.duplicateTab(params.url)
+            }
+
             break
         case ACTIONS.TAB_CLOSE:
             await Tabs.closeCurrentTab()
@@ -38,12 +41,38 @@ async function handleMessage(params, { tab }) {
             await Tabs.newTab()
             break
         case ACTIONS.SET_MODE:
-            mode = arg1
+            if (MODES[params?.mode]) {
+                mode = params.mode
+
+                await browser.tabs.sendMessage(tab.id, JSON.stringify({
+                    action: ACTIONS.SET_MODE,
+                    params: { mode }
+                }))
+            }
+
             break
         case ACTIONS.GET_MODE:
-            await browser.tabs.sendMessage(tab.id, JSON.stringify([ACTIONS.SET_MODE, mode]))
+            await browser.tabs.sendMessage(tab.id, JSON.stringify({
+                action: ACTIONS.SET_MODE,
+                params: { mode }
+            }))
+
+            break
+        case ACTIONS.PROXY_TO_PARENT:
+            await browser.tabs.sendMessage(tab.id, JSON.stringify({
+                action: ACTIONS.PROXY_TO_PARENT,
+                params
+            }))
+
             break
     }
+}
+
+function handleActivate({ tabId }) {
+    browser.tabs.sendMessage(tabId, JSON.stringify({
+        action: ACTIONS.SET_MODE,
+        params: { mode }
+    }))
 }
 
 browser.tabs.onActivated.addListener(handleActivate)

@@ -1,15 +1,6 @@
 class Commands {
     static async message(m) {
-        window.top.postMessage(JSON.stringify(m), { targetOrigin: '*'})
         return browser.runtime.sendMessage(JSON.stringify(m))
-    }
-
-    static proxyToParent(func, action, args) {
-        if (window !== window.top) {
-            window.top.postMessage({ type: 'keyfull', action, args }, '*')
-        } else {
-            func()
-        }
     }
 
     static scroll(direction) {
@@ -35,13 +26,11 @@ class Commands {
     }
 
     static scrollTop() {
-        const callback = () => Commands.scroll(SCROLL_DIRECTIONS.TOP)
-        Commands.proxyToParent(callback, 'scrollTop')
+        Commands.scroll(SCROLL_DIRECTIONS.TOP)
     }
 
     static scrollBottom() {
-        const callback = () => Commands.scroll(SCROLL_DIRECTIONS.BOTTOM)
-        Commands.proxyToParent(callback, 'scrollBottom')
+        Commands.scroll(SCROLL_DIRECTIONS.BOTTOM)
     }
 
     static scrollToTop() {
@@ -50,12 +39,9 @@ class Commands {
             left: 0,
             behavior: 'smooth'
         }
-        const callback = () => {
-            document.body.scroll(options)
-            document.documentElement.scroll(options)
-        }
 
-        Commands.proxyToParent(callback, 'scrollToTop')
+        document.body.scroll(options)
+        document.documentElement.scroll(options)
     }
 
     static scrollToBottom() {
@@ -66,48 +52,40 @@ class Commands {
             behavior: 'smooth'
         }
 
-        const callback = () => {
-            document.body.scroll(options)
-            document.documentElement.scroll(options)
-        }
-
-        Commands.proxyToParent(callback, 'scrollToBottom')
+        document.body.scroll(options)
+        document.documentElement.scroll(options)
     }
 
     static nextTab() {
-        Commands.message([ACTIONS.TAB_NEXT])
+        Commands.message({ action: ACTIONS.TAB_NEXT })
     }
 
     static prevTab() {
-        Commands.message([ACTIONS.TAB_PREV])
+        Commands.message({ action: ACTIONS.TAB_PREV })
     }
 
     static moveCurrentTabToLeft() {
-        Commands.message([ACTIONS.TAB_MOVE_TO_LEFT])
+        Commands.message({ action: ACTIONS.TAB_MOVE_TO_LEFT })
     }
 
     static moveCurrentTabToRight() {
-        Commands.message([ACTIONS.TAB_MOVE_TO_RIGHT])
+        Commands.message({ action: ACTIONS.TAB_MOVE_TO_RIGHT })
     }
 
     static duplicateTab() {
-        Commands.message([ACTIONS.TAB_DUPLICATE])
-    }
-
-    static duplicateAndActiveTab() {
-        Commands.message([ACTIONS.TAB_DUPLICATE, true])
+        Commands.message({ action: ACTIONS.TAB_DUPLICATE })
     }
 
     static closeCurrentTab() {
-        Commands.message([ACTIONS.TAB_CLOSE])
+        Commands.message({ action: ACTIONS.TAB_CLOSE })
     }
 
     static updateCurrentTab() {
-        Commands.message([ACTIONS.TAB_RELOAD])
+        Commands.message({ action: ACTIONS.TAB_RELOAD })
     }
 
     static newTab() {
-        Commands.message([ACTIONS.TAB_NEW])
+        Commands.message({ action: ACTIONS.TAB_NEW })
     }
 
     static getVisibleControls() {
@@ -222,8 +200,6 @@ class Commands {
     static controlClick(id) {
         const el = Commands.getTargetControl(id)
 
-        Commands.unmark()
-
         if (!el) {
             return
         }
@@ -236,11 +212,15 @@ class Commands {
     }
 
     static openInNewTab(id) {
-        const link = Commands.getTargetControl(id)?.href
-        Commands.unmark()
+        const url = Commands.getTargetControl(id)?.href
 
-        if (link) {
-            Commands.message([ACTIONS.TAB_NEW_BACKGROUND, link])
+        if (url) {
+            Commands.message({
+                action: ACTIONS.TAB_NEW_BACKGROUND,
+                params: {
+                    url
+                }
+            })
         }
     }
 }

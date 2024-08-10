@@ -57,27 +57,18 @@ class Panel {
     }
 }
 
-
-window.addEventListener(EVENTS.MESSAGE, ({ data }) => {
-    let res = null
+browser.runtime.onMessage.addListener((message) => {
+    let { action, params } = parseParams(message)
 
     if (window !== window.top) {
         return
     }
 
-    try {
-        res = JSON.parse(data)
-    } catch (e) {}
-
-    if (!Array.isArray(res)) {
-        return
-    }
-
-    const [action, arg] = res
-
     switch (action) {
         case ACTIONS.SET_MODE:
-            Panel.setMode(arg)
+            if (MODES[params.mode]) {
+                Panel.setMode(params.mode)
+            }
             break
     }
 })

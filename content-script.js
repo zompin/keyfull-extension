@@ -18,16 +18,15 @@ class DocumentControl {
                 [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setCommandMode],
             },
             [MODES.COMMAND]: {
-                [createKey(PRIMARY_KEYS.K)]: [ep, Commands.scrollTop],
-                [createKey(PRIMARY_KEYS.J)]: [ep, Commands.scrollBottom],
-                [createKey(PRIMARY_KEYS.K, { isShift: true })]: [ep, Commands.scrollToTop],
-                [createKey(PRIMARY_KEYS.J, { isShift: true })]: [ep, Commands.scrollToBottom],
+                [createKey(PRIMARY_KEYS.K)]: [ep, this.scrollTop],
+                [createKey(PRIMARY_KEYS.J)]: [ep, this.scrollBottom],
+                [createKey(PRIMARY_KEYS.K, { isShift: true })]: [ep, this.scrollToTop],
+                [createKey(PRIMARY_KEYS.J, { isShift: true })]: [ep, this.scrollToBottom],
                 [createKey(PRIMARY_KEYS.MORE)]: [ep, Commands.nextTab],
                 [createKey(PRIMARY_KEYS.LESS)]: [ep, Commands.prevTab],
                 [createKey(PRIMARY_KEYS.MORE, { isShift: true })]: [ep, Commands.moveCurrentTabToRight],
                 [createKey(PRIMARY_KEYS.LESS, { isShift: true })]: [ep, Commands.moveCurrentTabToLeft],
                 [createKey(PRIMARY_KEYS.D)]: [ep, Commands.duplicateTab],
-                [createKey(PRIMARY_KEYS.D, { isShift: true })]: [ep, Commands.duplicateAndActiveTab],
                 [createKey(PRIMARY_KEYS.X)]: [ep, Commands.closeCurrentTab],
                 [createKey(PRIMARY_KEYS.R)]: [ep, Commands.updateCurrentTab],
                 [createKey(PRIMARY_KEYS.T)]: [ep, Commands.newTab],
@@ -46,8 +45,8 @@ class DocumentControl {
                 [createKey(PRIMARY_KEYS.K)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.L)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.Backspace)]: [ep, this.handleControlSelect],
-                [createKey(PRIMARY_KEYS.I)]: [ep, this.controlClick],
-                [createKey(PRIMARY_KEYS.O)]: [ep, this.openInNewTab],
+                [createKey(PRIMARY_KEYS.I)]: [ep, this.handleControlClick],
+                [createKey(PRIMARY_KEYS.O)]: [ep, this.handleOpenInNewTab],
                 [createKey(MODIFICATIONS_KEYS.ShiftLeft)]: [this.setSelectToShadowMode],
                 [createKey(MODIFICATIONS_KEYS.ShiftRight)]: [this.setSelectToShadowMode],
             },
@@ -60,42 +59,91 @@ class DocumentControl {
         this.blockKeys(MODES.COMMAND)
         this.blockKeys(MODES.CONTROL_SELECT)
         this.subscribe()
+
+        browser.runtime.sendMessage(JSON.stringify({ action: ACTIONS.GET_MODE }))
     }
 
-    setShadowToCommandMode() {
-        this.setMode(MODES.SHADOW_TO_COMMAND)
-        this.timer = setTimeout(() => this.setShadowMode(), DOUBLE_KEY_TIMEOUT)
+    scrollTop() {
+        Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: {
+                command: COMMANDS.SCROLL_TOP
+            }
+        })
     }
 
-    setCommandToShadowMode() {
-        this.setMode(MODES.COMMAND_TO_SHADOW)
-        this.timer = setTimeout(() => this.setCommandMode(), DOUBLE_KEY_TIMEOUT)
+    scrollBottom() {
+        Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: {
+                command: COMMANDS.SCROLL_BOTTOM
+            }
+        })
     }
 
-    setSelectToShadowMode() {
-        this.setMode(MODES.SELECT_TO_SHADOW)
-        this.timer = setTimeout(() => this.setControlSelectMode(), DOUBLE_KEY_TIMEOUT)
+    scrollToTop() {
+        Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: {
+                command: COMMANDS.SCROLL_TO_TOP
+            }
+        })
+    }
+
+    scrollToBottom() {
+        Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: {
+                command: COMMANDS.SCROLL_TO_BOTTOM
+            }
+        })
     }
 
     setCommandMode() {
         clearTimeout(this.timer)
-        this.setMode(MODES.COMMAND)
-        Commands.proxyToParent(Commands.unmark, 'unmark')
+        this.setGlobalMode(MODES.COMMAND)
+    }
+
+    setShadowToCommandMode() {
+        this.setGlobalMode(MODES.SHADOW_TO_COMMAND)
+        this.timer = setTimeout(() => this.setShadowMode(), DOUBLE_KEY_TIMEOUT)
+    }
+
+    setCommandToShadowMode() {
+        this.setGlobalMode(MODES.COMMAND_TO_SHADOW)
+        this.timer = setTimeout(() => this.setCommandMode(), DOUBLE_KEY_TIMEOUT)
+    }
+
+    setSelectToShadowMode() {
+        this.setGlobalMode(MODES.SELECT_TO_SHADOW)
+        this.timer = setTimeout(() => this.setControlSelectMode(), DOUBLE_KEY_TIMEOUT)
     }
 
     setShadowMode() {
         clearTimeout(this.timer)
-        this.setMode(MODES.SHADOW)
+        this.setGlobalMode(MODES.SHADOW)
     }
 
-    setControlId(id) {
-        this.controlId = id || ''
+    selectModeToCommandMode() {
+        this.setCommandMode()
     }
 
     setControlSelectMode() {
-        Commands.proxyToParent(() => this.setControlId(), 'setControlId', )
-        Commands.proxyToParent(() => Commands.markControls(this.controlId), 'markControls', [this.controlId])
-        this.setMode(MODES.CONTROL_SELECT)
+        this.setGlobalMode(MODES.CONTROL_SELECT)
+
+        Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: {
+                command: COMMANDS.MARK_CONTROLS
+            }
+        })
+    }
+
+    setGlobalMode(mode) {
+        Commands.message({
+            action: ACTIONS.SET_MODE,
+            params: { mode }
+        })
     }
 
     changeControlId(key) {
@@ -116,33 +164,51 @@ class DocumentControl {
     }
 
     handleControlSelect(e) {
-        Commands.proxyToParent(() => this.changeControlId(e.code), 'changeControlId', [e.code])
+        Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: {
+                command: COMMANDS.CHANGE_CONTROL_ID,
+                code: e.code,
+            }
+        })
     }
 
-    selectModeToCommandMode() {
-        this.setCommandMode()
-        Commands.proxyToParent(Commands.unmark, 'unmark')
+    handleControlClick() {
+        Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: {
+                command: COMMANDS.CONTROL_INTERACT,
+            }
+        })
     }
 
     controlClick() {
-        Commands.proxyToParent(() => {
-            const el = document.querySelector(`[data-keyfull-target-id="${this.controlId}"]`)
-            Commands.controlClick(this.controlId)
-            this.setCommandMode()
-            this.setControlId()
+        const el = document.querySelector(`[data-keyfull-target-id="${this.controlId}"]`)
+        Commands.controlClick(this.controlId)
+        this.setCommandMode()
 
-            if (isControlEditable(el)) {
-                this.setShadowMode()
+        if (isControlEditable(el)) {
+            this.setShadowMode()
+        }
+    }
+
+    cleanControls() {
+        Commands.unmark()
+        this.controlId = ''
+    }
+
+    handleOpenInNewTab() {
+        Commands.message({
+            action: ACTIONS.PROXY_TO_PARENT,
+            params: {
+                command: COMMANDS.OPEN_IN_NEW_TAB,
             }
-        }, 'controlClick')
+        })
     }
 
     openInNewTab() {
-        Commands.proxyToParent(() => {
-            Commands.openInNewTab(this.controlId)
-            this.setCommandMode()
-            this.setControlId()
-        }, 'openInNewTab')
+        Commands.openInNewTab(this.controlId)
+        this.setCommandMode()
     }
 
     blockKeys(mode) {
@@ -199,16 +265,6 @@ class DocumentControl {
         this.preventEnabled = false
     }
 
-    setMode(mode) {
-        this.mode = mode
-        Commands.message([ACTIONS.SET_MODE, mode])
-    }
-
-    handleBrowserMessage(m) {
-        const [_, mode] = JSON.parse(m)
-        this.setMode(mode)
-    }
-
     handleKeyDown(e) {
         const keyString = this.eventToKeyString(e)
         let queue = this.transitions[this.mode]?.[keyString] || []
@@ -216,7 +272,7 @@ class DocumentControl {
         if (this.mode === MODES.COMMAND_TO_SHADOW && !queue.length) {
             queue = this.transitions[MODES.COMMAND]?.[keyString] || []
         } else if (this.mode === MODES.SHADOW_TO_COMMAND && !queue.length) {
-            this.setMode(MODES.SHADOW)
+            this.setGlobalMode(MODES.SHADOW)
         }
 
         queue.forEach(q => q.call(this, e))
@@ -234,20 +290,61 @@ class DocumentControl {
 
     handleClick(e) {
         if (isControlEditable(e.target)) {
-            this.setMode(MODES.SHADOW)
+            this.setGlobalMode(MODES.SHADOW)
         }
     }
-    handleMessage(m) {
-        if (m.data?.type !== 'keyfull') {
-            return
+
+    executeCommand(params) {
+        switch (params.command) {
+            case COMMANDS.SCROLL_TOP:
+                Commands.scrollTop()
+                break
+            case COMMANDS.SCROLL_BOTTOM:
+                Commands.scrollBottom()
+                break
+            case COMMANDS.SCROLL_TO_TOP:
+                Commands.scrollToTop()
+                break
+            case COMMANDS.SCROLL_TO_BOTTOM:
+                Commands.scrollToBottom()
+                break
+            case COMMANDS.MARK_CONTROLS:
+                Commands.markControls(this.controlId)
+                break
+            case COMMANDS.CHANGE_CONTROL_ID:
+                this.changeControlId(params.code)
+                break
+            case COMMANDS.CONTROL_INTERACT:
+                this.controlClick()
+                break
+            case COMMANDS.OPEN_IN_NEW_TAB:
+                this.openInNewTab()
+                break
+            case COMMANDS.CLEAN_CONTROLS:
+                this.cleanControls()
+                break;
         }
+    }
 
-        const {action, args} = m.data
+    handleMessage(message) {
+        const { action, params } = parseParams(message)
 
-        if (['setMode', 'changeControlId', 'setControlId', 'controlClick', 'openInNewTab'].includes(action)) {
-            this[action](...(args || []))
-        } else {
-            Commands[action](...(args || []))
+        switch (action) {
+            case ACTIONS.SET_MODE:
+                if (MODES[params?.mode]) {
+                    this.mode = params.mode
+                }
+
+                if (params.mode !== MODES.CONTROL_SELECT) {
+                    this.executeCommand({
+                        command: COMMANDS.CLEAN_CONTROLS,
+                    })
+                }
+
+                break
+            case ACTIONS.PROXY_TO_PARENT:
+                this.executeCommand(params)
+                break
         }
     }
 
@@ -257,10 +354,8 @@ class DocumentControl {
         window.addEventListener(EVENTS.KEYUP, this.handleKeyUp.bind(this), { capture: true })
         window.addEventListener(EVENTS.CLICK, this.handleClick.bind(this))
         window.addEventListener(EVENTS.MESSAGE, this.handleMessage.bind(this))
-        browser.runtime.onMessage.addListener(this.handleBrowserMessage.bind(this))
+        browser.runtime.onMessage.addListener(this.handleMessage.bind(this))
     }
 }
 
 new DocumentControl(new Panel())
-
-browser.runtime.sendMessage(JSON.stringify([ACTIONS.GET_MODE]))
