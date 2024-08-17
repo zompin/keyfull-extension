@@ -193,7 +193,9 @@ class DocumentControl {
 
     handleClick(e) {
         if (isControlEditable(e.target)) {
-            this.setGlobalMode(MODES.SHADOW)
+            this.setShadowMode()
+        } else {
+            this.setCommandMode()
         }
     }
 

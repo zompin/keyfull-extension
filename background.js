@@ -1,7 +1,7 @@
 import { Tabs } from "./tabs.js";
 import { ACTIONS, MODES } from './background-constants.js'
 import { parseParams } from './background-utils.js'
-let mode = MODES.SHADOW
+let mode = MODES.COMMAND
 
 async function handleMessage(message, { tab }) {
     const { action, params } = parseParams(message)
