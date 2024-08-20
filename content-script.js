@@ -30,7 +30,7 @@ class DocumentControl {
             },
             [MODES.CONTROL_SELECT]: {
                 [createKey(PRIMARY_KEYS.Semicolon, { isMeta: true })]: [this.setShadowMode],
-                [createKey(PRIMARY_KEYS.Semicolon)]: [this.setCommandMode],
+                [createKey(PRIMARY_KEYS.Semicolon)]: [ep, this.setCommandMode],
                 [createKey(PRIMARY_KEYS.J)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.K)]: [ep, this.handleControlSelect],
                 [createKey(PRIMARY_KEYS.L)]: [ep, this.handleControlSelect],
