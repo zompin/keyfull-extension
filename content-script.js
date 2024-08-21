@@ -195,7 +195,13 @@ class DocumentControl {
         if (isControlEditable(e.target)) {
             this.setShadowMode()
         } else {
-            this.setCommandMode()
+            setTimeout(() => {
+                if (isControlEditable(document.activeElement)) {
+                    this.setShadowMode()
+                } else {
+                    this.setCommandMode()
+                }
+            }, 300)
         }
     }
 
