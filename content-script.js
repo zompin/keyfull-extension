@@ -103,10 +103,17 @@ class DocumentControl {
     controlClick() {
         const el = document.querySelector(`[data-keyfull-target-id="${this.controlId}"]`)
         Commands.controlClick(this.controlId)
-        this.setCommandMode()
 
         if (isControlEditable(el)) {
             this.setShadowMode()
+        } else {
+            setTimeout(() => {
+                if (isControlEditable(document.activeElement)) {
+                    this.setShadowMode()
+                } else {
+                    this.setCommandMode()
+                }
+            }, 300)
         }
     }
 
