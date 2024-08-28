@@ -98,7 +98,7 @@ class Commands {
     static getVisibleControls() {
         const canBeInvisible = (e) => !['input', 'select'].includes(e.tagName.toLowerCase())
 
-        return [...document.querySelectorAll('a, button, input, textarea, select, [role], [contenteditable], [aria-label]')]
+        return [...document.querySelectorAll('a, button, input, textarea, select, summary, [role], [contenteditable], [aria-label]')]
         .filter(e => {
             const { top, bottom} = e.getBoundingClientRect()
 
