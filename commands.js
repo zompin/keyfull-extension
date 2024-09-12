@@ -97,16 +97,31 @@ class Commands {
 
     static getVisibleControls() {
         const canBeInvisible = (e) => !['input', 'select'].includes(e.tagName.toLowerCase())
+        const cache = {}
 
-        return [...document.querySelectorAll('a, button, input, textarea, select, summary, [role], [contenteditable], [aria-label]')]
+        const tmp = [...document.querySelectorAll('a, button, input, textarea, select, summary, [role], [contenteditable], [aria-label]')]
         .filter(e => {
             const { top, bottom} = e.getBoundingClientRect()
 
-            return top >= 0 && bottom <= window.innerHeight && e.checkVisibility({
+            if (!(top >= 0 && bottom <= window.innerHeight && e.checkVisibility({
                 opacityProperty: canBeInvisible(e),
                 visibilityProperty: canBeInvisible(e),
-            })
+            }))) {
+                return false
+            }
+
+            if (e.href) {
+                if (cache[e.href]) {
+                    return false
+                } else {
+                    cache[e.href] = true
+                }
+            }
+
+            return true
         })
+
+        return tmp
     }
 
     static *generateLabelGenerator(count) {
