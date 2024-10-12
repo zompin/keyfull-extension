@@ -23,6 +23,7 @@ class DocumentControl {
                 [createKey(PRIMARY_KEYS.LESS, { isShift: true })]: [ep, Commands.moveCurrentTabToLeft],
                 [createKey(PRIMARY_KEYS.D)]: [ep, Commands.duplicateTab],
                 [createKey(PRIMARY_KEYS.X)]: [ep, Commands.closeCurrentTab],
+                [createKey(PRIMARY_KEYS.Quote)]: [ep, Commands.closeCurrentTab],
                 [createKey(PRIMARY_KEYS.R)]: [ep, Commands.updateCurrentTab],
                 [createKey(PRIMARY_KEYS.T)]: [ep, Commands.newTab],
                 [createKey(PRIMARY_KEYS.Backspace)]: [ep, this.setShadowMode],
