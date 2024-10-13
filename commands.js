@@ -95,12 +95,11 @@ class Commands {
         Commands.message({ action: ACTIONS.TAB_NEW })
     }
 
-    static getVisibleControls() {
-        const canBeInvisible = (e) => !['input', 'select'].includes(e.tagName.toLowerCase())
+    static filterControls (elements) {
         const cache = {}
+        const canBeInvisible = (e) => !['input', 'select'].includes(e.tagName.toLowerCase())
 
-        const tmp = [...document.querySelectorAll('a, button, input, textarea, select, summary, [role], [contenteditable], [aria-label]')]
-        .filter(e => {
+        return elements.filter((e) => {
             const { top, bottom} = e.getBoundingClientRect()
 
             if (!(top >= 0 && bottom <= window.innerHeight && e.checkVisibility({
@@ -120,8 +119,18 @@ class Commands {
 
             return true
         })
+    }
 
-        return tmp
+    static getVisibleControls() {
+        const links = [...document.querySelectorAll('a')]
+        const fields = [...document.querySelectorAll('input, textarea, select, [contenteditable]')]
+        const other = [...document.querySelectorAll('button, summary, [role], [aria-label]')]
+
+        return {
+            links: Commands.filterControls(links),
+            fields: Commands.filterControls(fields),
+            other: Commands.filterControls(other),
+        }
     }
 
     static *generateLabelGenerator(count) {
@@ -142,8 +151,8 @@ class Commands {
     }
 
     static getCanvas() {
-        Commands.unmark()
         const el = document.createElement('div')
+        Commands.unmark()
         el.id = 'keyfull-canvas'
         el.style.pointerEvents = 'none'
         el.style.position = 'fixed'
@@ -163,13 +172,11 @@ class Commands {
         return el.shadowRoot
     }
 
-    static markControls(id = '') {
-        const controls = Commands.getVisibleControls()
-        const canvas = Commands.getCanvas()
+    static markControlGroup(controls, prefix, id, canvas) {
         const gen = Commands.generateLabelGenerator(controls.length)
 
         for (const c of controls) {
-            const linkId = gen.next().value.join('')
+            const linkId = prefix + gen.next().value.join('')
             const label = Commands.createLabel(linkId, id, c)
 
             if (linkId === id) {
@@ -180,6 +187,15 @@ class Commands {
                 canvas.append(label)
             }
         }
+    }
+
+    static markControls(id = '') {
+        const { links, fields, other } = Commands.getVisibleControls()
+        const canvas = Commands.getCanvas()
+
+        Commands.markControlGroup(links, 'l', id, canvas)
+        Commands.markControlGroup(fields, 'k', id, canvas)
+        Commands.markControlGroup(other, 'j', id, canvas)
     }
 
     static unmark() {
