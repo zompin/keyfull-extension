@@ -96,7 +96,6 @@ class Commands {
     }
 
     static filterControls (elements) {
-        const cache = {}
         const canBeInvisible = (e) => !['input', 'select'].includes(e.tagName.toLowerCase())
 
         return elements.filter((e) => {
@@ -109,22 +108,14 @@ class Commands {
                 return false
             }
 
-            if (e.href) {
-                if (cache[e.href]) {
-                    return false
-                } else {
-                    cache[e.href] = true
-                }
-            }
-
             return true
         })
     }
 
     static getVisibleControls() {
         const links = [...document.querySelectorAll('a')]
-        const fields = [...document.querySelectorAll('input, textarea, select, [contenteditable]')]
-        const other = [...document.querySelectorAll('button, summary, [role], [aria-label]')]
+        const fields = [...document.querySelectorAll('input:not([type="button"]), textarea, select, [contenteditable]')]
+        const other = [...document.querySelectorAll('button, [type="button"], summary, [role="button"]')]
 
         return {
             links: Commands.filterControls(links),

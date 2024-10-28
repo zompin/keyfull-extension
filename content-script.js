@@ -108,11 +108,12 @@ class DocumentControl {
         if (isControlEditable(el)) {
             this.setShadowMode()
         } else {
+            const prevHref = location.href
+            this.setCommandMode()
+
             setTimeout(() => {
-                if (isControlEditable(document.activeElement)) {
+                if (isControlEditable(document.activeElement) && prevHref === location.href) {
                     this.setShadowMode()
-                } else {
-                    this.setCommandMode()
                 }
             }, 300)
         }
@@ -203,11 +204,12 @@ class DocumentControl {
         if (isControlEditable(e.target)) {
             this.setShadowMode()
         } else {
+            const prevHref = location.href
+            this.setCommandMode()
+
             setTimeout(() => {
-                if (isControlEditable(document.activeElement)) {
+                if (isControlEditable(document.activeElement) && location.href === prevHref) {
                     this.setShadowMode()
-                } else {
-                    this.setCommandMode()
                 }
             }, 300)
         }
