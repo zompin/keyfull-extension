@@ -144,6 +144,31 @@ class Commands {
     static getCanvas() {
         const el = document.createElement('div')
         Commands.unmark()
+
+        const style = document.createElement('style')
+
+        style.innerHTML = `
+            .control {
+                position: absolute;
+                background-color: #000;
+                color: #fff;
+                padding: 0 5px 1px;
+                border-radius: 5px;
+                letter-spacing: 1px;
+            }
+            
+            .control_match {
+                background-color: #fff;
+                color: #000;
+                border: 1px solid #000;
+            }
+            
+            .highlight {
+                background: #fff;
+                color: #000;
+            }
+        `
+
         el.id = 'keyfull-canvas'
         el.style.pointerEvents = 'none'
         el.style.position = 'fixed'
@@ -159,6 +184,7 @@ class Commands {
         el.style.fontWeight = 'normal'
         document.body.append(el)
         el.attachShadow({mode: 'open'})
+        el.shadowRoot.append(style)
 
         return el.shadowRoot
     }
@@ -198,19 +224,21 @@ class Commands {
         const { top, left } = control.getBoundingClientRect()
 
         el.setAttribute('data-keyfull-control-id', value)
-        el.style.position = 'absolute'
-        el.style.background = '#000'
-        el.style.padding = '0 5px'
+        el.classList.add('control')
         el.style.top = `${top}px`
         el.style.left = `${left}px`
-        el.style.borderRadius = '5px'
-        el.style.letterSpacing = '1px'
-        el.style.paddingBottom = '1px'
 
         if (!targetId) {
             el.textContent = value.slice(0, 1)
+        } else if (value === targetId) {
+            el.classList.add('control_match')
+            el.textContent = value
         } else if (value.indexOf(targetId) === 0) {
-            el.innerHTML = `<span style="background:#fff; color:#000">${targetId}</span><span>${value.slice(targetId.length)}</span>`
+            const length = targetId.length
+
+            el.innerHTML = `
+                ${value.slice(0, length)}<span class="highlight">${value.slice(length, length + 1)}</span>${value.slice(length + 1)}
+            `
         } else {
             return null
         }
