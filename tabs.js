@@ -34,7 +34,8 @@ export class Tabs {
     }
 
     static async newBackgroundTab(url) {
-        await browser.tabs.create({ url, active: false })
+        const [{index}] = await Tabs.getCurrentTab()
+        await browser.tabs.create({ url, active: false, index: index + 1 })
     }
 
     static async moveCurrentTabToLeft() {
